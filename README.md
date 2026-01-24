@@ -1,8 +1,12 @@
-# AI3 Development Project
+# AI3 Demo - Autonomys Network Dashboard
 
-Welcome to your AI3 (Autonomys Network) development environment! This project is set up for building decentralized applications on the Autonomys EVM.
+A web application demonstrating the Autonomys Network (AI3) capabilities including:
+- **Network Statistics** - Real-time blockchain metrics
+- **File Storage** - Permanent decentralized storage via Auto Drive
+- **Wallet Integration** - Connect MetaMask/Coinbase Wallet
+- **File Explorer** - Browse all files stored on the network
 
-
+**Live Demo**: https://picostar.github.io/AI3/
 
 ## Primary Developer Hub
 
@@ -25,13 +29,13 @@ Welcome to your AI3 (Autonomys Network) development environment! This project is
 | **Auto EVM Intro** | https://develop.autonomys.xyz/evm/introduction |
 | **Auto Agents Framework** | https://develop.autonomys.xyz/auto_agents_framework/introduction |
 | **Faucet (tAI3)** | https://autonomysfaucet.xyz/ or Discord #faucet |
-| **Taurus Testnet Bridge** | https://bridge.taurus.autonomys.xyz/ |
+| **Chronos Testnet Bridge** | https://bridge.chronos.autonomys.xyz/ |
 | **Block Explorer (EVM)** | https://explorer.auto-evm.chronos.autonomys.xyz/ |
 | **Block Explorer (Consensus)** | https://autonomys.subscan.io/ |
 | **GitHub** | https://github.com/autonomys |
 | **LLM-Friendly Docs** | https://develop.autonomys.xyz/llm_friendly_docs |
 
-## Network Configuration (Taurus Testnet)
+## Network Configuration (Chronos Testnet)
 
 | Setting | Value |
 |---------|-------|
@@ -39,6 +43,8 @@ Welcome to your AI3 (Autonomys Network) development environment! This project is
 | **RPC URL** | https://auto-evm.chronos.autonomys.xyz/ws |
 | **Chain ID** | 8700 |
 | **Currency** | tAI3 |
+
+> **Note**: Taurus testnet is deprecated. Use Chronos for all testnet development.
 
 ### Adding to a Wallet (MetaMask or Coinbase Wallet)
 
@@ -61,12 +67,28 @@ If you do not see tAI3 in the Coinbase web dashboard, that is usually expected f
 
 ## This Demo Project
 
-This project includes a simple web application that demonstrates:
-- Connecting to the Autonomys EVM network
-- Wallet integration (injected EVM wallets such as MetaMask or Coinbase Wallet)
-- Displaying account balance
-- Sending transactions
-- **File upload and sharing using Auto Drive (AI3 permanent storage)**
+This project includes three pages:
+
+### Home Page (index.html)
+- **Wallet Connection** - Connect MetaMask or Coinbase Wallet to Autonomys EVM
+- **File Upload** - Upload files to Auto Drive permanent storage
+- **QR Code Generation** - Share files with QR codes
+- **My Files** - View your uploaded files with QR codes for each
+- **Credits Display** - Track your Auto Drive storage usage
+
+### Network Stats (stats.html)
+- **Network Health** - Real-time status of blockchain services
+- **Block & Transaction Stats** - Live data from Blockscout Explorer
+- **Storage Metrics** - Archived history and farmer storage from Subscan
+- **Auto Drive Stats** - File counts and upload trends
+- **Storage Cost Calculator** - Compare costs with Arweave, ICP, etc.
+- **Mainnet/Testnet Toggle** - Switch between networks
+
+### File Explorer (explore.html)
+- **Browse All Files** - View files stored on the network
+- **Search & Filter** - Find files by name, CID, or type
+- **Pagination** - Navigate through thousands of files
+- **Mainnet/Testnet Toggle** - Switch between networks
 
 ### Auto Drive Integration
 
@@ -113,13 +135,14 @@ The stats page (`stats.html`) displays real-time network metrics from the Autono
 | Stat | Description |
 |------|-------------|
 | **Latest Block** | Current block height on the EVM domain |
-| **Block Time** | Average seconds between blocks (~7s target) |
+| **Block Time** | Average seconds between blocks (~6s target) |
 | **AI3 Price** | Live token price from Blockscout API |
 | **Transactions Today** | EVM transactions in the last 24 hours |
 | **Active Addresses** | Total unique addresses on the network |
 | **Gas Price** | Current transaction fee in Gwei |
-| **Archived History** | Estimated data archived (blocks × ~35KB avg) |
-| **Auto Drive Files** | Total files stored on the permanent storage network |
+| **Archived History** | Real data from Subscan (blockChainHistorySize) |
+| **Farmer Storage** | Real data from Subscan (consensusSpace) |
+| **Auto Drive Files** | Total files stored on permanent storage |
 
 ### Storage Cost Calculation
 

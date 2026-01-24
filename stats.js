@@ -37,8 +37,10 @@ const NETWORKS = {
 // Current network selection (default to mainnet, or load from localStorage)
 let currentNetwork = localStorage.getItem('selectedNetwork') || 'mainnet';
 
-// Read-only API key for browsing public network files
-const AUTO_DRIVE_API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
+// Get API key from localStorage (set on home page)
+function getApiKey() {
+    return localStorage.getItem('autoDriveApiKey') || '';
+}
 
 // Get current network config
 function getNetwork() {
@@ -270,10 +272,22 @@ async function fetchNetworkFilesCount() {
     }
     
     try {
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            // No API key - show N/A for Auto Drive stats
+            const networkFilesEl = document.getElementById('network-files');
+            if (networkFilesEl) {
+                networkFilesEl.textContent = 'N/A';
+                networkFilesEl.title = 'Enter API key on Home page to view Auto Drive stats';
+            }
+            setHealth('health-storage', 'na');
+            return;
+        }
+        
         // Fetch a sample of 1000 files for statistics
         const response = await fetch(`${network.autoDriveApi}/objects/roots?limit=1000`, {
             headers: {
-                'Authorization': `Bearer ${AUTO_DRIVE_API_KEY}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'X-Auth-Provider': 'apikey'
             }
         });
@@ -392,18 +406,27 @@ async function fetchUploadChart() {
     }
     
     try {
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            const chartEl = document.getElementById('upload-chart');
+            if (chartEl) {
+                chartEl.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: var(--text-secondary);">Enter API key on Home page to view upload data</div>';
+            }
+            return;
+        }
+        
         // Fetch network files and user files
         // Note: API returns files sorted by CID, not date, so we need user files for recent data
         const [networkRes, userRes] = await Promise.all([
             fetch(`${network.autoDriveApi}/objects/roots?limit=5000`, {
                 headers: {
-                    'Authorization': `Bearer ${AUTO_DRIVE_API_KEY}`,
+                    'Authorization': `Bearer ${apiKey}`,
                     'X-Auth-Provider': 'apikey'
                 }
             }),
             fetch(`${network.autoDriveApi}/objects/roots?scope=user&limit=500`, {
                 headers: {
-                    'Authorization': `Bearer ${AUTO_DRIVE_API_KEY}`,
+                    'Authorization': `Bearer ${apiKey}`,
                     'X-Auth-Provider': 'apikey'
                 }
             })
