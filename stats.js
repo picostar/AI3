@@ -150,6 +150,7 @@ async function fetchNetworkStats() {
         const priceDetail = priceEl.parentElement.querySelector('.stat-detail');
         if (stats.coin_price && !isNaN(parseFloat(stats.coin_price))) {
             priceEl.textContent = '$' + parseFloat(stats.coin_price).toFixed(4);
+            priceEl.title = ''; // Clear any testnet tooltip
             
             // Price change indicator
             const priceChange = parseFloat(stats.coin_price_change_percentage) || 0;
@@ -253,7 +254,9 @@ async function fetchNetworkFilesCount() {
         const files = data.rows || [];
         
         // Update total files count
-        document.getElementById('network-files').textContent = formatNumber(totalCount);
+        const networkFilesEl = document.getElementById('network-files');
+        networkFilesEl.textContent = formatNumber(totalCount);
+        networkFilesEl.title = ''; // Clear any testnet tooltip
         
         // API responded successfully - storage is healthy
         setHealth('health-storage', 'healthy');
@@ -284,6 +287,7 @@ async function fetchNetworkFilesCount() {
                 if (avgSize >= 1e6) avgSizeEl.textContent = (avgSize / 1e6).toFixed(1) + ' MB';
                 else if (avgSize >= 1e3) avgSizeEl.textContent = (avgSize / 1e3).toFixed(1) + ' KB';
                 else avgSizeEl.textContent = Math.round(avgSize) + ' B';
+                avgSizeEl.title = ''; // Clear testnet tooltip
             }
             
             // Largest file in sample
@@ -293,6 +297,7 @@ async function fetchNetworkFilesCount() {
                 else if (largestFile.size >= 1e6) largestEl.textContent = (largestFile.size / 1e6).toFixed(2) + ' MB';
                 else if (largestFile.size >= 1e3) largestEl.textContent = (largestFile.size / 1e3).toFixed(1) + ' KB';
                 else largestEl.textContent = largestFile.size + ' B';
+                largestEl.title = ''; // Clear testnet tooltip
             }
             // Show largest file name in tooltip
             const largestCard = document.getElementById('largest-file-card');
@@ -308,12 +313,16 @@ async function fetchNetworkFilesCount() {
                 if (estTotalStorage >= 1e12) totalStorageEl.textContent = (estTotalStorage / 1e12).toFixed(2) + ' TB';
                 else if (estTotalStorage >= 1e9) totalStorageEl.textContent = (estTotalStorage / 1e9).toFixed(2) + ' GB';
                 else totalStorageEl.textContent = (estTotalStorage / 1e6).toFixed(2) + ' MB';
+                totalStorageEl.title = ''; // Clear testnet tooltip
             }
             
             // Archive rate (% fully stored vs still processing)
             const archiveRate = (archivedCount / files.length * 100).toFixed(1);
             const archiveRateEl = document.getElementById('archive-rate');
-            if (archiveRateEl) archiveRateEl.textContent = archiveRate + '%';
+            if (archiveRateEl) {
+                archiveRateEl.textContent = archiveRate + '%';
+                archiveRateEl.title = ''; // Clear testnet tooltip
+            }
             
             // Top file type
             const sortedTypes = Object.entries(mimeTypes).sort((a, b) => b[1] - a[1]);
@@ -323,6 +332,7 @@ async function fetchNetworkFilesCount() {
                 const shortType = topType.split('/')[1] || topType;
                 const pct = (sortedTypes[0][1] / files.length * 100).toFixed(0);
                 topTypeEl.textContent = shortType.toUpperCase() + ' (' + pct + '%)';
+                topTypeEl.title = ''; // Clear testnet tooltip
             }
             
         }
