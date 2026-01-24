@@ -20,7 +20,6 @@
 
         <div class="stats-grid">
             <div class="stat-card highlight-card" title="Current AI3 token price in USD. Source: Blockscout Explorer API (explorer.auto-evm.mainnet.autonomys.xyz/api/v2/stats)">
-                <div class="stat-icon">$</div>
                 <div class="stat-content">
                     <div class="stat-label">AI3 Price</div>
                     <div id="total-supply" class="stat-number">Loading...</div>
@@ -29,7 +28,6 @@
             </div>
 
             <div class="stat-card" title="Total blocks produced on the Autonomys EVM domain. Source: Blockscout Explorer API (total_blocks field)">
-                <div class="stat-icon">B</div>
                 <div class="stat-content">
                     <div class="stat-label">Total Blocks</div>
                     <div id="latest-block" class="stat-number">Loading...</div>
@@ -38,7 +36,6 @@
             </div>
 
             <div class="stat-card" title="EVM transactions in the last 24 hours. Source: Blockscout Explorer API (transactions_today field)">
-                <div class="stat-icon">#</div>
                 <div class="stat-content">
                     <div class="stat-label">Today's Txns</div>
                     <div id="tx-count" class="stat-number">Loading...</div>
@@ -47,7 +44,6 @@
             </div>
 
             <div class="stat-card" title="Unique wallet addresses that have interacted with the EVM. Source: Blockscout Explorer API (total_addresses field)">
-                <div class="stat-icon">@</div>
                 <div class="stat-content">
                     <div class="stat-label">Addresses</div>
                     <div id="address-count" class="stat-number">Loading...</div>
@@ -56,7 +52,6 @@
             </div>
 
             <div class="stat-card" title="Average time between blocks (~6-7 seconds target). Source: Blockscout Explorer API (average_block_time field, converted from ms)">
-                <div class="stat-icon">T</div>
                 <div class="stat-content">
                     <div class="stat-label">Block Time</div>
                     <div id="avg-block-time" class="stat-number">Loading...</div>
@@ -65,7 +60,6 @@
             </div>
 
             <div class="stat-card" title="Current transaction fee rate in Gwei. Source: Blockscout Explorer API (gas_prices.average field)">
-                <div class="stat-icon">G</div>
                 <div class="stat-content">
                     <div class="stat-label">Gas Price</div>
                     <div id="gas-price" class="stat-number">Loading...</div>
@@ -77,7 +71,6 @@
         <!-- Storage Stats Section -->
         <div class="stats-grid storage-stats">
             <div class="stat-card storage-card" title="Estimated blockchain data archived permanently. Calculated as: total_blocks × ~35KB average block size. The actual archival happens via Proof-of-Archival-Storage consensus.">
-                <div class="stat-icon">DB</div>
                 <div class="stat-content">
                     <div class="stat-label">Archived History</div>
                     <div id="archived-size" class="stat-number">Loading...</div>
@@ -86,7 +79,6 @@
             </div>
 
             <div class="stat-card storage-card" title="Total storage space pledged by farmers worldwide. Farmers store pieces of the blockchain and submit cryptographic proofs. Source: Estimated from network reports (~50+ PB).">
-                <div class="stat-icon">HD</div>
                 <div class="stat-content">
                     <div class="stat-label">Farmer Storage</div>
                     <div id="farmer-storage" class="stat-number">Loading...</div>
@@ -95,7 +87,6 @@
             </div>
 
             <div class="stat-card storage-card" title="Total files stored on Auto Drive permanent storage. Source: Auto Drive API (mainnet.auto-drive.autonomys.xyz/api/objects/roots - totalCount field)">
-                <div class="stat-icon">F</div>
                 <div class="stat-content">
                     <div class="stat-label">Network Files</div>
                     <div id="network-files" class="stat-number">Loading...</div>
@@ -107,7 +98,6 @@
         <!-- Auto Drive Stats Section -->
         <div class="stats-grid storage-stats">
             <div class="stat-card storage-card" title="Estimated total data stored on Auto Drive. Calculated from average file size × total file count. Source: Auto Drive API sample analysis.">
-                <div class="stat-icon">💾</div>
                 <div class="stat-content">
                     <div class="stat-label">Total Stored</div>
                     <div id="total-storage" class="stat-number">Loading...</div>
@@ -116,7 +106,6 @@
             </div>
 
             <div class="stat-card storage-card" title="Average file size on Auto Drive. Calculated from a sample of 1000 files. Source: Auto Drive API.">
-                <div class="stat-icon">📄</div>
                 <div class="stat-content">
                     <div class="stat-label">Avg File Size</div>
                     <div id="avg-file-size" class="stat-number">Loading...</div>
@@ -124,17 +113,23 @@
                 </div>
             </div>
 
-            <div class="stat-card storage-card" title="Percentage of files fully archived and replicated across farmers. 'Archived' means the file is permanently stored. Source: Auto Drive API status field.">
-                <div class="stat-icon">✓</div>
+            <div class="stat-card storage-card" id="largest-file-card" title="Largest file found in sample of 1000 files. Hover to see filename. Source: Auto Drive API.">
                 <div class="stat-content">
-                    <div class="stat-label">Archive Rate</div>
+                    <div class="stat-label">Largest File</div>
+                    <div id="largest-file" class="stat-number">Loading...</div>
+                    <div class="stat-detail">in sample</div>
+                </div>
+            </div>
+
+            <div class="stat-card storage-card" title="Percentage of files fully permanent vs still processing. 'Archived' = fully replicated across farmers. 'Archiving' = still being distributed. Source: Auto Drive API status field.">
+                <div class="stat-content">
+                    <div class="stat-label">Archived</div>
                     <div id="archive-rate" class="stat-number">Loading...</div>
-                    <div class="stat-detail">files fully archived</div>
+                    <div class="stat-detail">fully permanent</div>
                 </div>
             </div>
 
             <div class="stat-card storage-card" title="Most common file type stored on Auto Drive. Source: Auto Drive API mimeType field analysis from sample.">
-                <div class="stat-icon">📁</div>
                 <div class="stat-content">
                     <div class="stat-label">Top File Type</div>
                     <div id="top-file-type" class="stat-number">Loading...</div>

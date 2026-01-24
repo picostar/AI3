@@ -137,11 +137,16 @@ async function fetchNetworkFilesCount() {
             // Total storage estimate (sample avg × total count)
             let sampleSize = 0;
             let archivedCount = 0;
+            let largestFile = { size: 0, name: '' };
             const mimeTypes = {};
             
             files.forEach(f => {
-                sampleSize += parseInt(f.size) || 0;
+                const fileSize = parseInt(f.size) || 0;
+                sampleSize += fileSize;
                 if (f.status === 'Archived') archivedCount++;
+                if (fileSize > largestFile.size) {
+                    largestFile = { size: fileSize, name: f.name || 'Unnamed' };
+                }
                 const type = f.mimeType || 'unknown';
                 mimeTypes[type] = (mimeTypes[type] || 0) + 1;
             });
@@ -155,6 +160,21 @@ async function fetchNetworkFilesCount() {
                 else avgSizeEl.textContent = Math.round(avgSize) + ' B';
             }
             
+            // Largest file in sample
+            const largestEl = document.getElementById('largest-file');
+            if (largestEl) {
+                if (largestFile.size >= 1e9) largestEl.textContent = (largestFile.size / 1e9).toFixed(2) + ' GB';
+                else if (largestFile.size >= 1e6) largestEl.textContent = (largestFile.size / 1e6).toFixed(2) + ' MB';
+                else if (largestFile.size >= 1e3) largestEl.textContent = (largestFile.size / 1e3).toFixed(1) + ' KB';
+                else largestEl.textContent = largestFile.size + ' B';
+            }
+            // Show largest file name in tooltip
+            const largestCard = document.getElementById('largest-file-card');
+            if (largestCard) {
+                const shortName = largestFile.name.length > 30 ? largestFile.name.slice(0, 27) + '...' : largestFile.name;
+                largestCard.title = `Largest file in sample: "${largestFile.name}" (${formatBytes(largestFile.size)})`;
+            }
+            
             // Estimated total storage
             const estTotalStorage = avgSize * totalCount;
             const totalStorageEl = document.getElementById('total-storage');
@@ -164,7 +184,7 @@ async function fetchNetworkFilesCount() {
                 else totalStorageEl.textContent = (estTotalStorage / 1e6).toFixed(2) + ' MB';
             }
             
-            // Archive rate
+            // Archive rate (% fully stored vs still processing)
             const archiveRate = (archivedCount / files.length * 100).toFixed(1);
             const archiveRateEl = document.getElementById('archive-rate');
             if (archiveRateEl) archiveRateEl.textContent = archiveRate + '%';
