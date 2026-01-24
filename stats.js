@@ -24,13 +24,13 @@ const NETWORKS = {
     },
     testnet: {
         name: 'Testnet (Taurus)',
-        explorerApi: 'https://explorer.auto-evm.taurus.autonomys.xyz/api/v2',
-        autoDriveApi: 'https://taurus.auto-drive.autonomys.xyz/api',
-        gateway: 'https://gateway.taurus.autonomys.xyz',
+        explorerApi: 'https://blockscout.taurus.autonomys.xyz/api/v2',
+        autoDriveApi: 'https://demo.auto-drive.autonomys.xyz/api',
+        gateway: 'https://demo.auto-drive.autonomys.xyz/files',
         rpcUrl: 'https://auto-evm.taurus.autonomys.xyz/ws',
-        altRpcUrl: 'https://rpc.auto-evm.taurus.autonomys.xyz',
-        subscanApi: 'https://autonomys-taurus.api.subscan.io',
-        explorerUrl: 'https://explorer.auto-evm.taurus.autonomys.xyz'
+        altRpcUrl: 'https://rpc-0.taurus.autonomys.xyz',
+        subscanApi: 'https://autonomys.api.subscan.io', // Uses mainnet Subscan (no testnet available)
+        explorerUrl: 'https://blockscout.taurus.autonomys.xyz'
     }
 };
 

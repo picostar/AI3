@@ -21,8 +21,8 @@ const NETWORKS = {
     },
     testnet: {
         name: 'Testnet (Taurus)',
-        autoDriveApi: 'https://taurus.auto-drive.autonomys.xyz/api',
-        gateway: 'https://gateway.taurus.autonomys.xyz/file'
+        autoDriveApi: 'https://demo.auto-drive.autonomys.xyz/api',
+        gateway: 'https://demo.auto-drive.autonomys.xyz/files'
     }
 };
 
