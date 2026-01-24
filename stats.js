@@ -1,6 +1,21 @@
-// Network Stats for Autonomys/AI3 using Blockscout Explorer API
+/**
+ * stats.js - Network statistics for Autonomys/AI3
+ * 
+ * Fetches and displays real-time network health metrics from:
+ * - Blockscout Explorer API (EVM stats, blocks, transactions)
+ * - Auto Drive API (file storage statistics)
+ * - Subscan API (consensus layer health)
+ * 
+ * Auto-refreshes every 30 seconds.
+ */
+
+// API endpoints
 const EXPLORER_API = 'https://explorer.auto-evm.mainnet.autonomys.xyz/api/v2';
 const GATEWAY_URL = 'https://gateway.autonomys.xyz';
+const AUTO_DRIVE_API = 'https://mainnet.auto-drive.autonomys.xyz/api';
+
+// Read-only API key for browsing public network files
+const AUTO_DRIVE_API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
 
 // Track when services first went down (for escalating from warning to error)
 const healthDownSince = {};
@@ -101,9 +116,9 @@ async function fetchNetworkStats() {
         const priceChange = stats.coin_price_change_percentage;
         const priceDetail = document.getElementById('total-supply').parentElement.querySelector('.stat-detail');
         if (priceChange >= 0) {
-            priceDetail.innerHTML = `<span style="color: #4ade80">▲ ${priceChange.toFixed(2)}%</span> 24h change`;
+            priceDetail.innerHTML = `<span style="color: #4ade80">+${priceChange.toFixed(2)}%</span> 24h change`;
         } else {
-            priceDetail.innerHTML = `<span style="color: #f87171">▼ ${Math.abs(priceChange).toFixed(2)}%</span> 24h change`;
+            priceDetail.innerHTML = `<span style="color: #f87171">-${Math.abs(priceChange).toFixed(2)}%</span> 24h change`;
         }
         
         document.getElementById('tx-count').textContent = stats.transactions_today;
@@ -140,12 +155,10 @@ async function fetchNetworkStats() {
 // Fetch network files count and stats from Auto Drive
 async function fetchNetworkFilesCount() {
     try {
-        const API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
-        
         // Fetch a sample of 1000 files for statistics
-        const response = await fetch('https://mainnet.auto-drive.autonomys.xyz/api/objects/roots?limit=1000', {
+        const response = await fetch(`${AUTO_DRIVE_API}/objects/roots?limit=1000`, {
             headers: {
-                'Authorization': `Bearer ${API_KEY}`,
+                'Authorization': `Bearer ${AUTO_DRIVE_API_KEY}`,
                 'X-Auth-Provider': 'apikey'
             }
         });
@@ -244,20 +257,18 @@ async function fetchNetworkFilesCount() {
 // Fetch and render file upload chart from Auto Drive
 async function fetchUploadChart() {
     try {
-        const API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
-        
         // Fetch network files and user files
         // Note: API returns files sorted by CID, not date, so we need user files for recent data
         const [networkRes, userRes] = await Promise.all([
-            fetch('https://mainnet.auto-drive.autonomys.xyz/api/objects/roots?limit=5000', {
+            fetch(`${AUTO_DRIVE_API}/objects/roots?limit=5000`, {
                 headers: {
-                    'Authorization': `Bearer ${API_KEY}`,
+                    'Authorization': `Bearer ${AUTO_DRIVE_API_KEY}`,
                     'X-Auth-Provider': 'apikey'
                 }
             }),
-            fetch('https://mainnet.auto-drive.autonomys.xyz/api/objects/roots?scope=user&limit=500', {
+            fetch(`${AUTO_DRIVE_API}/objects/roots?scope=user&limit=500`, {
                 headers: {
-                    'Authorization': `Bearer ${API_KEY}`,
+                    'Authorization': `Bearer ${AUTO_DRIVE_API_KEY}`,
                     'X-Auth-Provider': 'apikey'
                 }
             })

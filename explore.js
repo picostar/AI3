@@ -1,9 +1,21 @@
-// Explore all files on Autonomys DSN
+/**
+ * explore.js - File browser for Autonomys DSN
+ * 
+ * Allows users to browse all files stored on the Autonomys
+ * Distributed Storage Network (DSN) via Auto Drive API.
+ * 
+ * Features:
+ * - Paginated file listing
+ * - Search by filename or CID
+ * - Filter by file type
+ * - Sort by date/size
+ */
+
 const AUTO_DRIVE_API = 'https://mainnet.auto-drive.autonomys.xyz/api';
 const GATEWAY_URL = 'https://gateway.autonomys.xyz/file';
 const FILES_PER_PAGE = 20;
 
-// Hardcoded API key for browsing public files (read-only)
+// Read-only API key for browsing public network files
 const API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
 
 let currentPage = 0;

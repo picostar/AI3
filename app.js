@@ -1,3 +1,13 @@
+/**
+ * app.js - Main application for AI3 Demo
+ * 
+ * Handles:
+ * - Wallet connection (MetaMask/Coinbase) to Autonomys EVM
+ * - File uploads to Auto Drive permanent storage
+ * - QR code generation for file sharing
+ * - User file management and credits display
+ */
+
 import { ethers } from 'ethers';
 import QRCode from 'qrcode';
 import { createAutoDriveApi } from '@autonomys/auto-drive';
