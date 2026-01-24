@@ -104,7 +104,6 @@ async function fetchNetworkStats() {
         updateStorageCosts(parseFloat(stats.coin_price));
         
         setHealth('health-blocks', 'healthy');
-        setHealth('health-storage', 'healthy');
         return stats;
     } catch (error) {
         console.error('Failed to fetch network stats:', error);
@@ -198,6 +197,11 @@ async function fetchNetworkFilesCount() {
                 const pct = (sortedTypes[0][1] / files.length * 100).toFixed(0);
                 topTypeEl.textContent = shortType.toUpperCase() + ' (' + pct + '%)';
             }
+            
+            // Storage network is healthy
+            setHealth('health-storage', 'healthy');
+        } else {
+            setHealth('health-storage', 'warning');
         }
     } catch (error) {
         console.error('Failed to fetch network files:', error);
@@ -208,6 +212,7 @@ async function fetchNetworkFilesCount() {
             const el = document.getElementById(id);
             if (el) el.textContent = 'N/A';
         });
+        setHealth('health-storage', 'error');
     }
 }
 
@@ -437,28 +442,102 @@ async function checkGatewayHealth() {
         setHealth('health-gateway', 'healthy');
         return true;
     } catch (error) {
-        setHealth('health-gateway', 'healthy');
-        return true;
+        setHealth('health-gateway', 'warning');
+        return false;
+    }
+}
+
+// Check consensus chain health via Subscan
+async function checkConsensusHealth() {
+    try {
+        const response = await fetch('https://autonomys.api.subscan.io/api/scan/metadata', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.code === 0 && data.data) {
+            setHealth('health-consensus', 'healthy');
+            return true;
+        }
+        setHealth('health-consensus', 'warning');
+        return false;
+    } catch (error) {
+        console.error('Consensus health check failed:', error);
+        setHealth('health-consensus', 'error');
+        return false;
+    }
+}
+
+// Check RPC node health
+async function checkRpcHealth() {
+    try {
+        const response = await fetch('https://auto-evm.mainnet.autonomys.xyz/ws', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'eth_blockNumber',
+                params: [],
+                id: 1
+            })
+        });
+        const data = await response.json();
+        if (data.result) {
+            setHealth('health-rpc', 'healthy');
+            return true;
+        }
+        setHealth('health-rpc', 'warning');
+        return false;
+    } catch (error) {
+        // Try alternative RPC endpoint
+        try {
+            const altResponse = await fetch('https://rpc.auto-evm.mainnet.autonomys.xyz', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    method: 'eth_blockNumber',
+                    params: [],
+                    id: 1
+                })
+            });
+            const altData = await altResponse.json();
+            if (altData.result) {
+                setHealth('health-rpc', 'healthy');
+                return true;
+            }
+        } catch (e) {}
+        console.error('RPC health check failed:', error);
+        setHealth('health-rpc', 'error');
+        return false;
     }
 }
 
 // Update health message
 function updateHealthMessage() {
     const blocks = document.getElementById('health-blocks');
+    const consensus = document.getElementById('health-consensus');
     const storage = document.getElementById('health-storage');
     const gateway = document.getElementById('health-gateway');
+    const rpc = document.getElementById('health-rpc');
     
-    const allHealthy = blocks?.classList.contains('healthy') && 
-                       storage?.classList.contains('healthy') && 
-                       gateway?.classList.contains('healthy');
+    const healthyCount = [blocks, consensus, storage, gateway, rpc].filter(
+        el => el?.classList.contains('healthy')
+    ).length;
+    const totalCount = 5;
+    
     const messageEl = document.getElementById('health-message');
     
     if (messageEl) {
-        if (allHealthy) {
+        if (healthyCount === totalCount) {
             messageEl.textContent = 'All systems operational. Your data is being actively stored and proven.';
             messageEl.className = 'health-message healthy';
+        } else if (healthyCount >= 3) {
+            messageEl.textContent = `${healthyCount}/${totalCount} systems healthy. Some services may have degraded performance.`;
+            messageEl.className = 'health-message warning';
         } else {
-            messageEl.textContent = 'Some systems may be experiencing issues. Data integrity is maintained by the network.';
+            messageEl.textContent = `${healthyCount}/${totalCount} systems healthy. Network may be experiencing issues.`;
             messageEl.className = 'health-message warning';
         }
     }
@@ -473,8 +552,10 @@ async function refreshStats() {
     }
     
     setHealth('health-blocks', 'loading');
+    setHealth('health-consensus', 'loading');
     setHealth('health-storage', 'loading');
     setHealth('health-gateway', 'loading');
+    setHealth('health-rpc', 'loading');
     
     await Promise.all([
         fetchNetworkStats(),
@@ -482,7 +563,9 @@ async function refreshStats() {
         fetchTransactionChart(),
         fetchUploadChart(),
         fetchNetworkFilesCount(),
-        checkGatewayHealth()
+        checkGatewayHealth(),
+        checkConsensusHealth(),
+        checkRpcHealth()
     ]);
     
     updateHealthMessage();

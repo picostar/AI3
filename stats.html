@@ -228,17 +228,25 @@
         <div class="card">
             <h2>Network Health</h2>
             <div class="health-indicators">
-                <div class="health-item">
+                <div class="health-item" title="EVM domain block production status. Checks if Blockscout API returns recent block data. Green = EVM is producing blocks normally.">
                     <div id="health-blocks" class="health-dot"></div>
-                    <span>Block Production</span>
+                    <span>EVM Blocks</span>
                 </div>
-                <div class="health-item">
+                <div class="health-item" title="Consensus layer status via Subscan API. Checks if the main Autonomys blockchain is finalizing blocks. Green = consensus chain is healthy.">
+                    <div id="health-consensus" class="health-dot"></div>
+                    <span>Consensus</span>
+                </div>
+                <div class="health-item" title="Auto Drive permanent storage API status. Checks if file metadata can be queried. Green = storage network API is responding.">
                     <div id="health-storage" class="health-dot"></div>
-                    <span>Storage Network</span>
+                    <span>Storage API</span>
                 </div>
-                <div class="health-item">
+                <div class="health-item" title="Auto Drive file gateway status. Checks if files can be retrieved via gateway URLs. Green = files are accessible.">
                     <div id="health-gateway" class="health-dot"></div>
-                    <span>Gateway Access</span>
+                    <span>Gateway</span>
+                </div>
+                <div class="health-item" title="RPC endpoint availability. Checks if the EVM RPC node is accepting connections. Green = RPC is responsive.">
+                    <div id="health-rpc" class="health-dot"></div>
+                    <span>RPC Node</span>
                 </div>
             </div>
             <p id="health-message" class="health-message"></p>
