@@ -202,6 +202,12 @@ async function fetchNetworkFilesCount() {
     } catch (error) {
         console.error('Failed to fetch network files:', error);
         document.getElementById('network-files').textContent = 'N/A';
+        // Set all Auto Drive stats to N/A on error
+        const autoStats = ['total-storage', 'avg-file-size', 'largest-file', 'archive-rate', 'top-file-type'];
+        autoStats.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = 'N/A';
+        });
     }
 }
 
