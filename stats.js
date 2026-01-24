@@ -245,6 +245,9 @@ async function fetchNetworkFilesCount() {
         // Update total files count
         document.getElementById('network-files').textContent = formatNumber(totalCount);
         
+        // API responded successfully - storage is healthy
+        setHealth('health-storage', 'healthy');
+        
         // Calculate additional stats from sample
         if (files.length > 0) {
             // Total storage estimate (sample avg × total count)
@@ -312,10 +315,6 @@ async function fetchNetworkFilesCount() {
                 topTypeEl.textContent = shortType.toUpperCase() + ' (' + pct + '%)';
             }
             
-            // Storage network is healthy
-            setHealth('health-storage', 'healthy');
-        } else {
-            setHealth('health-storage', 'down');
         }
     } catch (error) {
         console.error('Failed to fetch network files:', error);
@@ -500,23 +499,25 @@ function renderChart(chartData) {
     const container = document.getElementById('tx-chart');
     if (!container) return;
     
-    const maxTx = Math.max(...chartData.map(d => d.transaction_count), 1);
-    const totalTx = chartData.reduce((sum, d) => sum + d.transaction_count, 0);
+    // Ensure all transaction counts are valid numbers
+    const maxTx = Math.max(...chartData.map(d => parseInt(d.transaction_count) || 0), 1);
+    const totalTx = chartData.reduce((sum, d) => sum + (parseInt(d.transaction_count) || 0), 0);
     
     let html = '<div class="chart-header">';
-    html += `<span class="chart-total">${totalTx} transactions in the last 14 days</span>`;
+    html += `<span class="chart-total">${totalTx.toLocaleString()} transactions in the last 14 days</span>`;
     html += '</div>';
     html += '<div class="chart-container">';
     
     chartData.forEach((day, index) => {
-        const height = Math.max((day.transaction_count / maxTx) * 100, 4);
+        const txCount = parseInt(day.transaction_count) || 0;
+        const height = Math.max((txCount / maxTx) * 100, 4);
         const date = new Date(day.date);
         const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         const isToday = index === chartData.length - 1;
         
         html += `
-            <div class="chart-bar-wrapper ${isToday ? 'today' : ''}" title="${dayLabel}: ${day.transaction_count} transactions">
-                <div class="chart-count">${day.transaction_count}</div>
+            <div class="chart-bar-wrapper ${isToday ? 'today' : ''}" title="${dayLabel}: ${txCount.toLocaleString()} transactions">
+                <div class="chart-count">${txCount.toLocaleString()}</div>
                 <div class="chart-bar" style="height: ${height}%"></div>
                 <div class="chart-label">${dayLabel}</div>
             </div>
