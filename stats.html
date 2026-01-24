@@ -102,7 +102,7 @@
 
         <!-- Storage Stats Section -->
         <div class="stats-grid storage-stats">
-            <div class="stat-card storage-card" title="Estimated blockchain data archived permanently. Calculated as: total_blocks × ~35KB average block size. The actual archival happens via Proof-of-Archival-Storage consensus.">
+            <div class="stat-card storage-card" title="Total blockchain history data archived permanently by farmers. Source: Subscan API (blockChainHistorySize field from /api/scan/metadata)">
                 <div class="stat-content">
                     <div class="stat-label">Archived History</div>
                     <div id="archived-size" class="stat-number">Loading...</div>
@@ -110,7 +110,7 @@
                 </div>
             </div>
 
-            <div class="stat-card storage-card" title="Total storage space pledged by farmers worldwide. Farmers store pieces of the blockchain and submit cryptographic proofs. Source: Estimated from network reports (~50+ PB).">
+            <div class="stat-card storage-card" title="Total storage space pledged by farmers worldwide via Proof-of-Archival-Storage. Source: Subscan API (consensusSpace field from /api/scan/metadata)">
                 <div class="stat-content">
                     <div class="stat-label">Farmer Storage</div>
                     <div id="farmer-storage" class="stat-number">Loading...</div>

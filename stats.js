@@ -213,13 +213,8 @@ async function fetchNetworkStats() {
             document.getElementById('gas-price').textContent = stats.gas_prices.average.toFixed(2) + ' Gwei';
         }
         
-        // Calculate archived history estimate based on blocks
-        // Autonomys archives ~35KB per block on average
-        const archivedBytes = stats.total_blocks * 35 * 1024;
-        document.getElementById('archived-size').textContent = formatBytes(archivedBytes);
-        
-        // Farmer storage - Autonomys mainnet has 50+ PB pledged
-        document.getElementById('farmer-storage').textContent = '50+ PB';
+        // Note: Archived History and Farmer Storage are updated from Subscan API
+        // in checkConsensusHealth() with real blockchain data
         
         setHealth('health-blocks', 'healthy');
         return stats;
@@ -628,7 +623,7 @@ async function checkGatewayHealth() {
     }
 }
 
-// Check consensus chain health via Subscan
+// Check consensus chain health via Subscan and update network stats
 async function checkConsensusHealth() {
     const network = getNetwork();
     try {
@@ -640,6 +635,21 @@ async function checkConsensusHealth() {
         const data = await response.json();
         if (data.code === 0 && data.data) {
             setHealth('health-consensus', 'healthy');
+            
+            // Update Archived History from real blockchain data
+            const historySize = parseInt(data.data.blockChainHistorySize) || 0;
+            if (historySize > 0) {
+                document.getElementById('archived-size').textContent = formatBytes(historySize);
+            }
+            
+            // Update Farmer Storage from real consensus space data
+            const consensusSpace = parseInt(data.data.consensusSpace) || 0;
+            if (consensusSpace > 0) {
+                // Format as PB with 1 decimal
+                const petabytes = consensusSpace / 1e15;
+                document.getElementById('farmer-storage').textContent = petabytes.toFixed(1) + ' PB';
+            }
+            
             return true;
         }
         setHealth('health-consensus', 'down');
