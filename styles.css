@@ -1511,6 +1511,10 @@ header h1 {
     z-index: 1000;
 }
 
+.qr-modal.hidden {
+    display: none;
+}
+
 .qr-modal-content {
     background: white;
     padding: 30px;
