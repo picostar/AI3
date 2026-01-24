@@ -651,22 +651,41 @@ function updateHealthMessage() {
     const gateway = document.getElementById('health-gateway');
     const rpc = document.getElementById('health-rpc');
     
-    const healthyCount = [blocks, consensus, storage, gateway, rpc].filter(
+    const allIndicators = [blocks, consensus, storage, gateway, rpc];
+    
+    // Count healthy services
+    const healthyCount = allIndicators.filter(
         el => el?.classList.contains('healthy')
     ).length;
-    const totalCount = 5;
+    
+    // Count N/A services (not available on this network, not down)
+    const naCount = allIndicators.filter(
+        el => el?.classList.contains('na')
+    ).length;
+    
+    // Total available services (exclude N/A from total)
+    const availableCount = allIndicators.length - naCount;
     
     const messageEl = document.getElementById('health-message');
     
     if (messageEl) {
-        if (healthyCount === totalCount) {
-            messageEl.textContent = 'All systems operational. Your data is being actively stored and proven.';
+        if (availableCount === 0) {
+            // All services N/A (shouldn't happen)
+            messageEl.textContent = 'No services available to monitor on this network.';
+            messageEl.className = 'health-message';
+        } else if (healthyCount === availableCount) {
+            // All available services are healthy
+            if (naCount > 0) {
+                messageEl.textContent = `All ${healthyCount} available systems operational. ${naCount} service${naCount > 1 ? 's' : ''} not available on Testnet.`;
+            } else {
+                messageEl.textContent = 'All systems operational. Your data is being actively stored and proven.';
+            }
             messageEl.className = 'health-message healthy';
-        } else if (healthyCount >= 3) {
-            messageEl.textContent = `${healthyCount}/${totalCount} systems healthy. Some services may have degraded performance.`;
+        } else if (healthyCount >= Math.ceil(availableCount * 0.6)) {
+            messageEl.textContent = `${healthyCount}/${availableCount} systems healthy. Some services may have degraded performance.`;
             messageEl.className = 'health-message warning';
         } else {
-            messageEl.textContent = `${healthyCount}/${totalCount} systems healthy. Network may be experiencing issues.`;
+            messageEl.textContent = `${healthyCount}/${availableCount} systems healthy. Network may be experiencing issues.`;
             messageEl.className = 'health-message warning';
         }
     }
