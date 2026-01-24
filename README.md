@@ -2,7 +2,6 @@
 
 Welcome to your AI3 (Autonomys Network) development environment! This project is set up for building decentralized applications on the Autonomys EVM.
 
-8e2d61fa4df443b9a44d9f358b861792
 
 ## Primary Developer Hub
 
