@@ -1305,6 +1305,21 @@ header h1 {
     min-width: 150px;
 }
 
+.api-key-box {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.api-key-box input {
+    width: 180px;
+    font-family: monospace;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
 .loading-state {
     text-align: center;
     padding: 60px 20px;
