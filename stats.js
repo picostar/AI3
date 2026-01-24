@@ -96,7 +96,7 @@ function setHealth(elementId, status) {
         // Service not available for this network (e.g., Auto Drive on testnet)
         delete healthDownSince[elementId];
         el.className = 'health-dot na';
-        el.title = 'Not available on this network';
+        el.title = 'Not available on Testnet - Auto Drive is only available on Mainnet';
     } else if (status === 'down' || status === 'warning' || status === 'error') {
         // Service is down - track when it first went down
         if (!healthDownSince[elementId]) {
@@ -189,18 +189,43 @@ async function fetchNetworkStats() {
 // Fetch network files count and stats from Auto Drive
 async function fetchNetworkFilesCount() {
     const network = getNetwork();
+    const naTooltip = 'Auto Drive is only available on Mainnet. Switch to Mainnet to view storage stats.';
     
     // Auto Drive only available on mainnet
     if (!network.autoDriveApi) {
-        document.getElementById('network-files').textContent = 'N/A';
+        const networkFilesEl = document.getElementById('network-files');
+        if (networkFilesEl) {
+            networkFilesEl.textContent = 'N/A';
+            networkFilesEl.title = naTooltip;
+        }
         const avgSizeEl = document.getElementById('avg-file-size');
-        if (avgSizeEl) avgSizeEl.textContent = 'N/A';
+        if (avgSizeEl) {
+            avgSizeEl.textContent = 'N/A';
+            avgSizeEl.title = naTooltip;
+        }
         const largestEl = document.getElementById('largest-file');
-        if (largestEl) largestEl.textContent = 'N/A';
+        if (largestEl) {
+            largestEl.textContent = 'N/A';
+            largestEl.title = naTooltip;
+        }
         const rateEl = document.getElementById('archive-rate');
-        if (rateEl) rateEl.textContent = 'N/A';
+        if (rateEl) {
+            rateEl.textContent = 'N/A';
+            rateEl.title = naTooltip;
+        }
+        const totalStorageEl = document.getElementById('total-storage');
+        if (totalStorageEl) {
+            totalStorageEl.textContent = 'N/A';
+            totalStorageEl.title = naTooltip;
+        }
+        const topTypeEl = document.getElementById('top-file-type');
+        if (topTypeEl) {
+            topTypeEl.textContent = 'N/A';
+            topTypeEl.title = naTooltip;
+        }
         // Mark storage as unavailable (not down) for testnet
         setHealth('health-storage', 'na');
+        setHealth('health-gateway', 'na');
         console.log('Auto Drive API not available for testnet');
         return;
     }
