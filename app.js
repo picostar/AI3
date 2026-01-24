@@ -799,6 +799,8 @@ apiKeyInput.addEventListener('input', () => {
         if (apiStatus) apiStatus.classList.add('hidden');
         creditsSection.classList.add('hidden');
         filesList.classList.add('hidden');
+        // Clear stored key if input is cleared
+        localStorage.removeItem('autoDriveApiKey');
         return;
     }
     
@@ -824,6 +826,9 @@ apiKeyInput.addEventListener('input', () => {
             }
         }
         
+        // Store API key in localStorage for use across pages
+        localStorage.setItem('autoDriveApiKey', finalKey);
+        
         await checkCredits();
         await loadMyFiles(0);
         // Show API connected status
@@ -832,6 +837,21 @@ apiKeyInput.addEventListener('input', () => {
         }
     }, 500);
 });
+
+// Auto-load API key from localStorage on page load
+const savedApiKey = localStorage.getItem('autoDriveApiKey');
+if (savedApiKey && apiKeyInput) {
+    apiKeyInput.value = savedApiKey;
+    apiKeyInput.type = 'password'; // Hide the stored key
+    // Trigger load of credits and files
+    setTimeout(async () => {
+        await checkCredits();
+        await loadMyFiles(0);
+        if (apiStatus && autoDriveApi) {
+            apiStatus.classList.remove('hidden');
+        }
+    }, 100);
+}
 
 // Listen for account changes
 if (isWalletInstalled()) {

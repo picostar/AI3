@@ -32,61 +32,9 @@ let currentNetwork = localStorage.getItem('selectedNetwork') || 'mainnet';
 
 const FILES_PER_PAGE = 20;
 
-// Read-only API key for browsing public network files
-let API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
-
-// Encrypted API key - decrypted only when user enters the correct passphrase
-// The passphrase is NOT stored here - only the encrypted result
-const ENCRYPTED_KEY = 'sRTm2nczbfeBVtEz:gQYaAYZWr38omAoFmMjrqA==:YnuCe7ZGJ2UwXcPwdb9IBRklccWzByqjQJrZCyanBOs=';
-
-// Decrypt API key using Web Crypto API
-async function decryptApiKey(secret) {
-    try {
-        const parts = ENCRYPTED_KEY.split(':');
-        if (parts.length !== 3) return null;
-        
-        const iv = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
-        const authTag = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
-        const encrypted = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
-        
-        // Combine encrypted data with auth tag for GCM
-        const ciphertext = new Uint8Array(encrypted.length + authTag.length);
-        ciphertext.set(encrypted);
-        ciphertext.set(authTag, encrypted.length);
-        
-        // Derive key from secret using PBKDF2 (browser equivalent of scrypt)
-        const encoder = new TextEncoder();
-        const keyMaterial = await crypto.subtle.importKey(
-            'raw', encoder.encode(secret), 'PBKDF2', false, ['deriveKey']
-        );
-        
-        const key = await crypto.subtle.deriveKey(
-            { name: 'PBKDF2', salt: encoder.encode('autonomys-salt'), iterations: 100000, hash: 'SHA-256' },
-            keyMaterial,
-            { name: 'AES-GCM', length: 256 },
-            false,
-            ['decrypt']
-        );
-        
-        const decrypted = await crypto.subtle.decrypt(
-            { name: 'AES-GCM', iv: iv },
-            key,
-            ciphertext
-        );
-        
-        return new TextDecoder().decode(decrypted);
-    } catch (e) {
-        return null;
-    }
-}
-
-// Check if input is the secret passphrase and decrypt
-async function checkSecretKey(input) {
-    const decrypted = await decryptApiKey(input);
-    if (decrypted && decrypted.length === 32) {
-        return decrypted;
-    }
-    return null;
+// Get API key from localStorage (set on home page)
+function getApiKey() {
+    return localStorage.getItem('autoDriveApiKey') || '';
 }
 
 // Get current network config
@@ -149,17 +97,28 @@ async function fetchFiles(page = 0) {
     const network = getNetwork();
     const loadingEl = document.getElementById('files-loading');
     const tableContainer = document.getElementById('files-table-container');
+    const apiKeyWarning = document.getElementById('api-key-warning');
+    const apiKey = getApiKey();
     
     loadingEl.classList.remove('hidden');
     tableContainer.classList.add('hidden');
+    if (apiKeyWarning) apiKeyWarning.classList.add('hidden');
+
+    // Check if API key is set
+    if (!apiKey) {
+        loadingEl.classList.add('hidden');
+        if (apiKeyWarning) apiKeyWarning.classList.remove('hidden');
+        document.getElementById('total-files').textContent = '--';
+        return;
+    }
 
     // Check if Auto Drive API is available for this network
     if (!network.autoDriveApi) {
         loadingEl.classList.add('hidden');
         tableContainer.classList.remove('hidden');
         document.getElementById('total-files').textContent = 'N/A';
-        const tbody = document.getElementById('files-body');
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">Auto Drive is currently only available on Mainnet. Switch to Mainnet to browse files.</td></tr>';
+        const tbody = document.getElementById('explore-table-body');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">Auto Drive is currently only available on Mainnet. Switch to Mainnet to browse files.</td></tr>';
         document.getElementById('page-info').textContent = 'Page 0 of 0';
         return;
     }
@@ -169,7 +128,7 @@ async function fetchFiles(page = 0) {
         const limit = 100; // Fetch 100 to find recent files
         const response = await fetch(`${network.autoDriveApi}/objects/roots?limit=${limit}&offset=0`, {
             headers: {
-                'Authorization': `Bearer ${API_KEY}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'X-Auth-Provider': 'apikey'
             }
         });
@@ -421,51 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     mainnetBtn?.addEventListener('click', () => switchNetwork('mainnet'));
     testnetBtn?.addEventListener('click', () => switchNetwork('testnet'));
-    
-    // Set up API key input with secret passphrase support
-    const apiKeyInput = document.getElementById('api-key-input');
-    const apiKeyBtn = document.getElementById('api-key-btn');
-    
-    async function handleApiKey() {
-        const input = apiKeyInput?.value?.trim();
-        if (!input) return;
-        
-        // Try to decrypt as secret passphrase first
-        const decrypted = await checkSecretKey(input);
-        if (decrypted) {
-            API_KEY = decrypted;
-            apiKeyInput.value = '';
-            apiKeyInput.placeholder = 'Key unlocked!';
-            apiKeyBtn.textContent = 'Unlocked';
-            apiKeyBtn.classList.add('btn-success');
-            setTimeout(() => {
-                apiKeyInput.placeholder = 'API Key or passphrase...';
-                apiKeyBtn.textContent = 'Set Key';
-                apiKeyBtn.classList.remove('btn-success');
-            }, 2000);
-            fetchFiles(0); // Refresh with new key
-        } else if (input.length === 32) {
-            // Looks like a direct API key
-            API_KEY = input;
-            apiKeyInput.value = '';
-            apiKeyInput.placeholder = 'Key set!';
-            setTimeout(() => {
-                apiKeyInput.placeholder = 'API Key or passphrase...';
-            }, 2000);
-            fetchFiles(0);
-        } else {
-            apiKeyInput.placeholder = 'Invalid key or passphrase';
-            apiKeyInput.value = '';
-            setTimeout(() => {
-                apiKeyInput.placeholder = 'API Key or passphrase...';
-            }, 2000);
-        }
-    }
-    
-    apiKeyBtn?.addEventListener('click', handleApiKey);
-    apiKeyInput?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleApiKey();
-    });
     
     fetchFiles(0);
     setupSearch();

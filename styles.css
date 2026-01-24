@@ -207,6 +207,37 @@ header h1 {
     display: none;
 }
 
+/* Warning message for missing API key */
+.warning-message {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.warning-message p {
+    margin: 10px 0;
+    color: #856404;
+}
+
+.warning-message p:first-child {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.warning-message a {
+    color: #0d6efd;
+    text-decoration: underline;
+}
+
+.warning-message .hint {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 15px;
+}
+
 #wallet-info {
     margin-top: 20px;
     padding: 20px;
@@ -1303,17 +1334,6 @@ header h1 {
 
 .filter-controls select {
     min-width: 150px;
-}
-
-.api-key-box {
-    display: flex;
-    gap: 10px;
-    margin-left: auto;
-}
-
-.api-key-box input {
-    width: 180px;
-    font-family: monospace;
 }
 
 .btn-success {
