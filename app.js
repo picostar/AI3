@@ -17,6 +17,59 @@ import { NetworkId } from '@autonomys/auto-utils';
 const AUTO_DRIVE_GATEWAY = 'https://gateway.autonomys.xyz/file';
 let autoDriveApi = null;
 
+// Encrypted API key - decrypted only when user enters the correct passphrase
+const ENCRYPTED_KEY = 'sRTm2nczbfeBVtEz:gQYaAYZWr38omAoFmMjrqA==:YnuCe7ZGJ2UwXcPwdb9IBRklccWzByqjQJrZCyanBOs=';
+
+// Decrypt API key using Web Crypto API
+async function decryptApiKey(secret) {
+    try {
+        const parts = ENCRYPTED_KEY.split(':');
+        if (parts.length !== 3) return null;
+        
+        const iv = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
+        const authTag = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
+        const encrypted = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+        
+        // Combine encrypted data with auth tag for GCM
+        const ciphertext = new Uint8Array(encrypted.length + authTag.length);
+        ciphertext.set(encrypted);
+        ciphertext.set(authTag, encrypted.length);
+        
+        // Derive key from secret using PBKDF2
+        const encoder = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey(
+            'raw', encoder.encode(secret), 'PBKDF2', false, ['deriveKey']
+        );
+        
+        const key = await crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: encoder.encode('autonomys-salt'), iterations: 100000, hash: 'SHA-256' },
+            keyMaterial,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['decrypt']
+        );
+        
+        const decrypted = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: iv },
+            key,
+            ciphertext
+        );
+        
+        return new TextDecoder().decode(decrypted);
+    } catch (e) {
+        return null;
+    }
+}
+
+// Check if input is the secret passphrase and decrypt
+async function checkSecretKey(input) {
+    const decrypted = await decryptApiKey(input);
+    if (decrypted && decrypted.length === 32) {
+        return decrypted;
+    }
+    return null;
+}
+
 // Autonomys Network Configuration
 const AUTONOMYS_CONFIG = {
     chainId: '0x21fc', // 8700 in hex
@@ -742,15 +795,35 @@ apiKeyInput.addEventListener('input', () => {
     const key = apiKeyInput.value.trim();
     
     // Hide status when key is cleared
-    if (key.length < 20) {
+    if (key.length < 6) {
         if (apiStatus) apiStatus.classList.add('hidden');
         creditsSection.classList.add('hidden');
         filesList.classList.add('hidden');
         return;
     }
     
-    // Only trigger if key looks valid
+    // Trigger check after typing stops
     apiKeyDebounceTimer = setTimeout(async () => {
+        let finalKey = key;
+        
+        // Check if it's a passphrase (short) that decrypts to an API key
+        if (key.length < 20) {
+            const decrypted = await checkSecretKey(key);
+            if (decrypted) {
+                finalKey = decrypted;
+                apiKeyInput.value = decrypted;
+                apiKeyInput.type = 'password'; // Hide the key
+                showUploadStatus('API key unlocked!', 'success');
+                setTimeout(() => {
+                    const uploadStatus = document.getElementById('upload-status');
+                    if (uploadStatus) uploadStatus.classList.add('hidden');
+                }, 2000);
+            } else {
+                // Not a valid passphrase or key
+                return;
+            }
+        }
+        
         await checkCredits();
         await loadMyFiles(0);
         // Show API connected status
