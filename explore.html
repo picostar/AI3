@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Files - AI3 Network</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="top-nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="stats.html" class="nav-link">Network Stats</a>
+                <a href="explore.html" class="nav-link active">Explore Files</a>
+            </nav>
+            <h1>Explore Network Files</h1>
+            <p class="subtitle">Browse all files stored on the Autonomys Distributed Storage Network</p>
+        </header>
+
+        <div class="card">
+            <div class="explore-header">
+                <div class="explore-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="total-files">--</span>
+                        <span class="stat-label">Total Files</span>
+                    </div>
+                </div>
+                <div class="explore-info">
+                    <p>📦 These files are permanently stored across the decentralized network with cryptographic proofs</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="explore-controls">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Search by filename or CID..." class="input">
+                    <button id="search-btn" class="btn btn-primary">Search</button>
+                </div>
+                <div class="filter-controls">
+                    <select id="type-filter" class="input">
+                        <option value="">All Types</option>
+                        <option value="image">Images</option>
+                        <option value="application/json">JSON</option>
+                        <option value="application/zip">Archives</option>
+                        <option value="text">Text</option>
+                    </select>
+                    <select id="sort-filter" class="input">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="largest">Largest First</option>
+                        <option value="smallest">Smallest First</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="files-loading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading files from the network...</p>
+            </div>
+
+            <div id="files-grid" class="explore-grid hidden"></div>
+
+            <div id="files-table-container" class="hidden">
+                <table class="files-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Status</th>
+                            <th>Uploaded</th>
+                            <th>CID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="explore-table-body"></tbody>
+                </table>
+            </div>
+
+            <div id="pagination" class="pagination"></div>
+        </div>
+
+        <div class="card info-card">
+            <h3>📖 About Autonomys DSN</h3>
+            <p>The Distributed Storage Network (DSN) permanently stores data across thousands of farmers worldwide. Each file is:</p>
+            <ul>
+                <li><strong>Content-addressed</strong> - identified by a unique CID (Content Identifier)</li>
+                <li><strong>Replicated</strong> - stored across multiple nodes for redundancy</li>
+                <li><strong>Verified</strong> - cryptographic proofs ensure data integrity</li>
+                <li><strong>Permanent</strong> - stored as long as the network exists</li>
+            </ul>
+            <div class="info-links">
+                <a href="https://autonomys.subscan.io/" target="_blank" class="btn btn-secondary">Consensus Explorer</a>
+                <a href="https://develop.autonomys.xyz/" target="_blank" class="btn btn-secondary">Developer Docs</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="explore.js"></script>
+</body>
+</html>

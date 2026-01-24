@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI3 Network Stats - Autonomys Network</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="top-nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="stats.html" class="nav-link active">Network Stats</a>
+                <a href="explore.html" class="nav-link">Explore Files</a>
+            </nav>
+            <h1>Autonomys Network Stats</h1>
+            <p class="subtitle">Real-time network health and storage metrics</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card highlight-card">
+                <div class="stat-icon">$</div>
+                <div class="stat-content">
+                    <div class="stat-label">AI3 Price</div>
+                    <div id="total-supply" class="stat-number">Loading...</div>
+                    <div class="stat-detail">loading...</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">B</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Blocks</div>
+                    <div id="latest-block" class="stat-number">Loading...</div>
+                    <div id="block-time" class="stat-detail">on mainnet EVM</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">#</div>
+                <div class="stat-content">
+                    <div class="stat-label">Today's Txns</div>
+                    <div id="tx-count" class="stat-number">Loading...</div>
+                    <div class="stat-detail">network activity</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">@</div>
+                <div class="stat-content">
+                    <div class="stat-label">Addresses</div>
+                    <div id="address-count" class="stat-number">Loading...</div>
+                    <div class="stat-subtitle">unique wallets</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">T</div>
+                <div class="stat-content">
+                    <div class="stat-label">Block Time</div>
+                    <div id="avg-block-time" class="stat-number">Loading...</div>
+                    <div class="stat-detail">seconds average</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">G</div>
+                <div class="stat-content">
+                    <div class="stat-label">Gas Price</div>
+                    <div id="gas-price" class="stat-number">Loading...</div>
+                    <div class="stat-subtitle">current fee rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Stats Section -->
+        <div class="stats-grid storage-stats">
+            <div class="stat-card storage-card">
+                <div class="stat-icon">DB</div>
+                <div class="stat-content">
+                    <div class="stat-label">Archived History</div>
+                    <div id="archived-size" class="stat-number">Loading...</div>
+                    <div class="stat-detail">permanent blockchain data</div>
+                </div>
+            </div>
+
+            <div class="stat-card storage-card">
+                <div class="stat-icon">HD</div>
+                <div class="stat-content">
+                    <div class="stat-label">Farmer Storage</div>
+                    <div id="farmer-storage" class="stat-number">Loading...</div>
+                    <div class="stat-subtitle">total pledged space</div>
+                </div>
+            </div>
+
+            <div class="stat-card storage-card">
+                <div class="stat-icon">F</div>
+                <div class="stat-content">
+                    <div class="stat-label">Network Files</div>
+                    <div id="network-files" class="stat-number">Loading...</div>
+                    <div class="stat-detail">stored on Auto Drive</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Cost Calculator -->
+        <div class="card cost-calculator">
+            <h2>Storage Cost Calculator</h2>
+            <p class="subtitle">Autonomys offers <strong>permanent storage</strong> — pay once, stored forever!</p>
+            
+            <div class="cost-grid">
+                <div class="cost-item highlight">
+                    <div class="cost-label">Auto Drive (1 GB)</div>
+                    <div class="cost-value" id="cost-per-gb">~$<span id="price-per-gb">5.34</span></div>
+                    <div class="cost-detail">one-time, permanent ✓</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-label">vs. Arweave (1 GB)</div>
+                    <div class="cost-value">~$13</div>
+                    <div class="cost-detail">one-time, permanent</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-label">vs. ICP (1 GB/yr)</div>
+                    <div class="cost-value">~$5.35</div>
+                    <div class="cost-detail">annual renewal</div>
+                </div>
+            </div>
+
+            <div class="cost-comparison">
+                <h3>Decentralized Storage Comparison</h3>
+                <div class="comparison-table">
+                    <div class="comparison-row header">
+                        <span>Storage Option</span>
+                        <span>Cost per GB</span>
+                        <span>Duration</span>
+                        <span>Notes</span>
+                    </div>
+                    <div class="comparison-row">
+                        <span>Auto Drive</span>
+                        <span id="ad-price">~$5.34</span>
+                        <span>Permanent</span>
+                        <span class="highlight">On-chain, verified ✓</span>
+                    </div>
+                    <div class="comparison-row">
+                        <span>Arweave</span>
+                        <span>~$13</span>
+                        <span>Permanent</span>
+                        <span>On-chain, one-time</span>
+                    </div>
+                    <div class="comparison-row">
+                        <span>ICP</span>
+                        <span>~$5.35/yr</span>
+                        <span>Recurring</span>
+                        <span>On-chain, cycles-based</span>
+                    </div>
+                </div>
+                <p class="cost-note">Auto Drive cost verified via blockchain byte fee (335.5 AI3/GB × live price). ICP requires annual cycle renewal. Arweave pricing from network APIs. All prices vary with token market conditions.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Auto Drive File Uploads</h2>
+            <p class="subtitle">Recent file upload activity on the network</p>
+            <div id="upload-chart" class="tx-chart">Loading upload history...</div>
+        </div>
+
+        <div class="card">
+            <h2>Daily EVM Transactions</h2>
+            <p class="subtitle">On-chain transaction volume over the past 2 weeks</p>
+            <div id="tx-chart" class="tx-chart">Loading chart...</div>
+        </div>
+
+        <div class="card">
+            <h2>Recent EVM Blocks</h2>
+            <p class="subtitle">Live block activity on Autonomys Mainnet EVM</p>
+            <div id="blocks-loading">Loading recent blocks...</div>
+            <div id="recent-blocks" class="hidden">
+                <table class="blocks-table">
+                    <thead>
+                        <tr>
+                            <th>Block</th>
+                            <th>Time</th>
+                            <th>Txns</th>
+                            <th>Size</th>
+                            <th>Hash</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blocks-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Network Health</h2>
+            <div class="health-indicators">
+                <div class="health-item">
+                    <div id="health-blocks" class="health-dot"></div>
+                    <span>Block Production</span>
+                </div>
+                <div class="health-item">
+                    <div id="health-storage" class="health-dot"></div>
+                    <span>Storage Network</span>
+                </div>
+                <div class="health-item">
+                    <div id="health-gateway" class="health-dot"></div>
+                    <span>Gateway Access</span>
+                </div>
+            </div>
+            <p id="health-message" class="health-message"></p>
+        </div>
+
+        <div class="card">
+            <h2>What This Means</h2>
+            <div class="explainer">
+                <div class="explainer-item">
+                    <h4>Block Production</h4>
+                    <p>Every new block contains storage proofs from farmers, confirming your data is being actively maintained across the network.</p>
+                </div>
+                <div class="explainer-item">
+                    <h4>Archived History</h4>
+                    <p>The total amount of blockchain and user data permanently stored. Your files are erasure-coded and distributed among farmers.</p>
+                </div>
+                <div class="explainer-item">
+                    <h4>Active Farmers</h4>
+                    <p>Independent operators storing pieces of data and submitting cryptographic proofs. More farmers = more redundancy for your files.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Explore More</h2>
+            <div class="explore-links">
+                <a href="https://autonomys.subscan.io/" target="_blank" class="explore-card">
+                    <span class="explore-icon">&gt;</span>
+                    <span class="explore-text">
+                        <strong>Consensus Explorer</strong>
+                        <small>View all blocks, extrinsics, and events</small>
+                    </span>
+                </a>
+                <a href="https://explorer.auto-evm.chronos.autonomys.xyz/" target="_blank" class="explore-card">
+                    <span class="explore-icon">&gt;</span>
+                    <span class="explore-text">
+                        <strong>EVM Explorer</strong>
+                        <small>Smart contracts and EVM transactions</small>
+                    </span>
+                </a>
+                <a href="https://telemetry.subspace.network/" target="_blank" class="explore-card">
+                    <span class="explore-icon">&gt;</span>
+                    <span class="explore-text">
+                        <strong>Node Telemetry</strong>
+                        <small>Live view of all network nodes</small>
+                    </span>
+                </a>
+                <a href="https://ai3.storage/" target="_blank" class="explore-card">
+                    <span class="explore-icon">&gt;</span>
+                    <span class="explore-text">
+                        <strong>Auto Drive Dashboard</strong>
+                        <small>Your stored files and usage</small>
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <footer class="stats-footer">
+            <p>Data refreshes automatically every 30 seconds</p>
+            <button id="refreshButton" class="btn btn-secondary">Refresh Now</button>
+        </footer>
+    </div>
+
+    <script type="module" src="stats.js"></script>
+</body>
+</html>

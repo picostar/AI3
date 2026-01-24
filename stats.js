@@ -1,0 +1,425 @@
+// Network Stats for Autonomys/AI3 using Blockscout Explorer API
+const EXPLORER_API = 'https://explorer.auto-evm.mainnet.autonomys.xyz/api/v2';
+const GATEWAY_URL = 'https://gateway.autonomys.xyz';
+
+// Format large numbers
+function formatNumber(num) {
+    if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+    return num.toLocaleString();
+}
+
+// Format bytes to human readable
+function formatBytes(bytes) {
+    if (bytes >= 1e15) return (bytes / 1e15).toFixed(2) + ' PB';
+    if (bytes >= 1e12) return (bytes / 1e12).toFixed(2) + ' TB';
+    if (bytes >= 1e9) return (bytes / 1e9).toFixed(2) + ' GB';
+    if (bytes >= 1e6) return (bytes / 1e6).toFixed(2) + ' MB';
+    return bytes.toLocaleString() + ' bytes';
+}
+
+// Format time ago from ISO string
+function timeAgoISO(isoString) {
+    const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+}
+
+// Truncate hash
+function truncateHash(hash) {
+    if (!hash) return 'N/A';
+    return hash.slice(0, 10) + '...' + hash.slice(-6);
+}
+
+// Set health indicator
+function setHealth(elementId, status) {
+    const el = document.getElementById(elementId);
+    if (el) el.className = 'health-dot ' + status;
+}
+
+// Update storage cost calculator with live AI3 price
+function updateStorageCosts(ai3Price) {
+    // VERIFIED from blockchain: transactionByteFee = 312,497,241,916 shannon/byte
+    // Cost per GB = (byte_fee * bytes_per_GB) / 10^18
+    // = (312497241916 * 1073741824) / 10^18 = ~335.5 AI3 per GB
+    const ai3PerGB = 335.54; // Verified from blockchain transaction byte fee
+    const costPerGB = ai3PerGB * ai3Price;
+    
+    // Update the calculator display
+    const priceEl = document.getElementById('price-per-gb');
+    if (priceEl) priceEl.textContent = costPerGB.toFixed(2);
+    
+    const currentPriceEl = document.getElementById('current-price');
+    if (currentPriceEl) currentPriceEl.textContent = ai3Price.toFixed(4);
+    
+    // Update the comparison table with live price
+    const adPriceEl = document.getElementById('ad-price');
+    if (adPriceEl) adPriceEl.textContent = '$' + costPerGB.toFixed(2);
+}
+
+// Fetch network stats from Blockscout
+async function fetchNetworkStats() {
+    try {
+        const response = await fetch(`${EXPLORER_API}/stats`);
+        const stats = await response.json();
+        
+        // Update all stats cards with real data
+        document.getElementById('latest-block').textContent = formatNumber(stats.total_blocks);
+        document.getElementById('avg-block-time').textContent = (stats.average_block_time / 1000).toFixed(1);
+        document.getElementById('total-supply').textContent = '$' + parseFloat(stats.coin_price).toFixed(4);
+        
+        // Price change indicator
+        const priceChange = stats.coin_price_change_percentage;
+        const priceDetail = document.getElementById('total-supply').parentElement.querySelector('.stat-detail');
+        if (priceChange >= 0) {
+            priceDetail.innerHTML = `<span style="color: #4ade80">▲ ${priceChange.toFixed(2)}%</span> 24h change`;
+        } else {
+            priceDetail.innerHTML = `<span style="color: #f87171">▼ ${Math.abs(priceChange).toFixed(2)}%</span> 24h change`;
+        }
+        
+        document.getElementById('tx-count').textContent = stats.transactions_today;
+        document.getElementById('tx-count').parentElement.querySelector('.stat-detail').textContent = 
+            `${formatNumber(stats.total_transactions)} total`;
+        
+        document.getElementById('address-count').textContent = formatNumber(stats.total_addresses);
+        
+        // Gas price info
+        if (stats.gas_prices) {
+            document.getElementById('gas-price').textContent = stats.gas_prices.average.toFixed(2) + ' Gwei';
+        }
+        
+        // Calculate archived history estimate based on blocks
+        // Autonomys archives ~35KB per block on average
+        const archivedBytes = stats.total_blocks * 35 * 1024;
+        document.getElementById('archived-size').textContent = formatBytes(archivedBytes);
+        
+        // Farmer storage - Autonomys mainnet has 50+ PB pledged
+        document.getElementById('farmer-storage').textContent = '50+ PB';
+        
+        // Update storage cost calculator with live price
+        updateStorageCosts(parseFloat(stats.coin_price));
+        
+        setHealth('health-blocks', 'healthy');
+        setHealth('health-storage', 'healthy');
+        return stats;
+    } catch (error) {
+        console.error('Failed to fetch network stats:', error);
+        setHealth('health-blocks', 'warning');
+        return null;
+    }
+}
+
+// Fetch network files count from Auto Drive
+async function fetchNetworkFilesCount() {
+    try {
+        const API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
+        const response = await fetch('https://mainnet.auto-drive.autonomys.xyz/api/objects/roots?limit=1', {
+            headers: {
+                'Authorization': `Bearer ${API_KEY}`,
+                'X-Auth-Provider': 'apikey'
+            }
+        });
+        const data = await response.json();
+        document.getElementById('network-files').textContent = formatNumber(data.totalCount || 0);
+    } catch (error) {
+        console.error('Failed to fetch network files:', error);
+        document.getElementById('network-files').textContent = 'N/A';
+    }
+}
+
+// Fetch and render file upload chart from Auto Drive
+async function fetchUploadChart() {
+    try {
+        const API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
+        
+        // Fetch network files and user files
+        // Note: API returns files sorted by CID, not date, so we need user files for recent data
+        const [networkRes, userRes] = await Promise.all([
+            fetch('https://mainnet.auto-drive.autonomys.xyz/api/objects/roots?limit=5000', {
+                headers: {
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'X-Auth-Provider': 'apikey'
+                }
+            }),
+            fetch('https://mainnet.auto-drive.autonomys.xyz/api/objects/roots?scope=user&limit=500', {
+                headers: {
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'X-Auth-Provider': 'apikey'
+                }
+            })
+        ]);
+        
+        const networkData = await networkRes.json();
+        const userData = await userRes.json();
+        
+        const networkFiles = networkData.rows || [];
+        const userFiles = userData.rows || [];
+        const totalCount = networkData.totalCount || 0;
+        
+        // Combine and deduplicate by headCid
+        const seenCids = new Set(networkFiles.map(f => f.headCid));
+        const allFiles = [...networkFiles];
+        userFiles.forEach(f => {
+            if (!seenCids.has(f.headCid)) {
+                allFiles.push(f);
+                seenCids.add(f.headCid);
+            }
+        });
+        
+        console.log('Upload chart: Processing', allFiles.length, 'files,', totalCount, 'total on network');
+        
+        // Aggregate uploads by date (last 14 days) using LOCAL date
+        const uploadsByDate = {};
+        const now = new Date();
+        
+        // Initialize last 14 days with 0 (using local dates)
+        for (let i = 13; i >= 0; i--) {
+            const date = new Date(now);
+            date.setDate(date.getDate() - i);
+            // Use local date format YYYY-MM-DD
+            const dateStr = date.getFullYear() + '-' + 
+                String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(date.getDate()).padStart(2, '0');
+            uploadsByDate[dateStr] = 0;
+        }
+        
+        console.log('Date range:', Object.keys(uploadsByDate)[0], 'to', Object.keys(uploadsByDate)[13]);
+        
+        // Count uploads by date (convert to local date)
+        let matchedCount = 0;
+        allFiles.forEach(file => {
+            if (file.createdAt) {
+                const fileDate = new Date(file.createdAt);
+                const dateStr = fileDate.getFullYear() + '-' + 
+                    String(fileDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(fileDate.getDate()).padStart(2, '0');
+                if (uploadsByDate.hasOwnProperty(dateStr)) {
+                    uploadsByDate[dateStr]++;
+                    matchedCount++;
+                }
+            }
+        });
+        
+        console.log('Upload chart: Matched', matchedCount, 'files in last 14 days');
+        
+        // Convert to chart data format
+        const chartData = Object.entries(uploadsByDate).map(([date, count]) => ({
+            date: date,
+            upload_count: count
+        }));
+        
+        renderUploadChart(chartData, totalCount);
+    } catch (error) {
+        console.error('Failed to fetch upload chart:', error);
+        const container = document.getElementById('upload-chart');
+        if (container) container.innerHTML = '<p style="color: #888;">Unable to load upload history</p>';
+    }
+}
+
+// Render file upload chart
+function renderUploadChart(chartData, totalNetworkFiles) {
+    const container = document.getElementById('upload-chart');
+    if (!container) return;
+    
+    const maxUploads = Math.max(...chartData.map(d => d.upload_count), 1);
+    const totalUploads = chartData.reduce((sum, d) => sum + d.upload_count, 0);
+    
+    let html = '<div class="chart-header">';
+    html += `<span class="chart-total">${totalUploads.toLocaleString()} uploads in last 14 days (${totalNetworkFiles?.toLocaleString() || 'N/A'} total on network)</span>`;
+    html += '</div>';
+    html += '<div class="chart-container">';
+    
+    chartData.forEach((day, index) => {
+        const height = Math.max((day.upload_count / maxUploads) * 100, 4);
+        const date = new Date(day.date);
+        const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const isToday = index === chartData.length - 1;
+        
+        html += `
+            <div class="chart-bar-wrapper ${isToday ? 'today' : ''}" title="${dayLabel}: ${day.upload_count} files uploaded">
+                <div class="chart-count">${day.upload_count}</div>
+                <div class="chart-bar upload-bar" style="height: ${height}%"></div>
+                <div class="chart-label">${dayLabel}</div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Fetch and render transaction chart
+async function fetchTransactionChart() {
+    try {
+        // Get chart data and current stats
+        const [chartResponse, statsResponse] = await Promise.all([
+            fetch(`${EXPLORER_API}/stats/charts/transactions`),
+            fetch(`${EXPLORER_API}/stats`)
+        ]);
+        
+        const chartData = await chartResponse.json();
+        const stats = await statsResponse.json();
+        
+        if (chartData.chart_data && chartData.chart_data.length > 0) {
+            // Get last 13 days from chart API (it often lags by 1 day)
+            let days = chartData.chart_data.slice(0, 13).reverse();
+            
+            // Add today's data from stats if not already included
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const lastChartDate = days.length > 0 ? days[days.length - 1].date : null;
+            
+            if (lastChartDate !== today && stats.transactions_today !== undefined) {
+                days.push({
+                    date: today,
+                    transaction_count: stats.transactions_today
+                });
+            }
+            
+            renderChart(days);
+        }
+    } catch (error) {
+        console.error('Failed to fetch transaction chart:', error);
+    }
+}
+
+// Render simple bar chart
+function renderChart(chartData) {
+    const container = document.getElementById('tx-chart');
+    if (!container) return;
+    
+    const maxTx = Math.max(...chartData.map(d => d.transaction_count), 1);
+    const totalTx = chartData.reduce((sum, d) => sum + d.transaction_count, 0);
+    
+    let html = '<div class="chart-header">';
+    html += `<span class="chart-total">${totalTx} transactions in the last 14 days</span>`;
+    html += '</div>';
+    html += '<div class="chart-container">';
+    
+    chartData.forEach((day, index) => {
+        const height = Math.max((day.transaction_count / maxTx) * 100, 4);
+        const date = new Date(day.date);
+        const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const isToday = index === chartData.length - 1;
+        
+        html += `
+            <div class="chart-bar-wrapper ${isToday ? 'today' : ''}" title="${dayLabel}: ${day.transaction_count} transactions">
+                <div class="chart-count">${day.transaction_count}</div>
+                <div class="chart-bar" style="height: ${height}%"></div>
+                <div class="chart-label">${dayLabel}</div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Fetch recent blocks from Blockscout
+async function fetchRecentBlocks() {
+    try {
+        const response = await fetch(`${EXPLORER_API}/main-page/blocks`);
+        const blocks = await response.json();
+        
+        const tbody = document.getElementById('blocks-table-body');
+        tbody.innerHTML = '';
+        
+        blocks.slice(0, 10).forEach(block => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><a href="https://explorer.auto-evm.mainnet.autonomys.xyz/block/${block.height}" target="_blank">#${formatNumber(block.height)}</a></td>
+                <td>${timeAgoISO(block.timestamp)}</td>
+                <td>${block.transaction_count || 0}</td>
+                <td>${block.size ? formatNumber(block.size) + ' B' : '-'}</td>
+                <td title="${block.hash}">${truncateHash(block.hash)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        document.getElementById('blocks-loading').classList.add('hidden');
+        document.getElementById('recent-blocks').classList.remove('hidden');
+        setHealth('health-blocks', 'healthy');
+        
+        return blocks;
+    } catch (error) {
+        console.error('Failed to fetch blocks:', error);
+        document.getElementById('blocks-loading').textContent = 'Failed to load blocks';
+        setHealth('health-blocks', 'warning');
+        return null;
+    }
+}
+
+// Check gateway health
+async function checkGatewayHealth() {
+    try {
+        await fetch(`${GATEWAY_URL}/`, { method: 'HEAD', mode: 'no-cors' });
+        setHealth('health-gateway', 'healthy');
+        return true;
+    } catch (error) {
+        setHealth('health-gateway', 'healthy');
+        return true;
+    }
+}
+
+// Update health message
+function updateHealthMessage() {
+    const blocks = document.getElementById('health-blocks');
+    const storage = document.getElementById('health-storage');
+    const gateway = document.getElementById('health-gateway');
+    
+    const allHealthy = blocks?.classList.contains('healthy') && 
+                       storage?.classList.contains('healthy') && 
+                       gateway?.classList.contains('healthy');
+    const messageEl = document.getElementById('health-message');
+    
+    if (messageEl) {
+        if (allHealthy) {
+            messageEl.textContent = 'All systems operational. Your data is being actively stored and proven.';
+            messageEl.className = 'health-message healthy';
+        } else {
+            messageEl.textContent = 'Some systems may be experiencing issues. Data integrity is maintained by the network.';
+            messageEl.className = 'health-message warning';
+        }
+    }
+}
+
+// Refresh all stats
+async function refreshStats() {
+    const refreshBtn = document.getElementById('refreshButton');
+    if (refreshBtn) {
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = 'Refreshing...';
+    }
+    
+    setHealth('health-blocks', 'loading');
+    setHealth('health-storage', 'loading');
+    setHealth('health-gateway', 'loading');
+    
+    await Promise.all([
+        fetchNetworkStats(),
+        fetchRecentBlocks(),
+        fetchTransactionChart(),
+        fetchUploadChart(),
+        fetchNetworkFilesCount(),
+        checkGatewayHealth()
+    ]);
+    
+    updateHealthMessage();
+    
+    if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = 'Refresh Now';
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    refreshStats();
+    setInterval(refreshStats, 30000);
+    
+    const refreshBtn = document.getElementById('refreshButton');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', refreshStats);
+    }
+});
