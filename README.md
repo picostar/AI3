@@ -1,10 +1,10 @@
 # AI3 Demo - Autonomys Network Dashboard
 
 A web application demonstrating the Autonomys Network (AI3) capabilities including:
+- **File Storage** - Permanent decentralized storage via Auto Drive (no wallet needed!)
 - **Network Statistics** - Real-time blockchain metrics
-- **File Storage** - Permanent decentralized storage via Auto Drive
-- **Wallet Integration** - Connect MetaMask/Coinbase Wallet
 - **File Explorer** - Browse all files stored on the network
+- **Wallet Integration** - Optional: Connect MetaMask/Coinbase Wallet
 
 **Live Demo**: https://picostar.github.io/AI3/
 
@@ -70,11 +70,11 @@ If you do not see tAI3 in the Coinbase web dashboard, that is usually expected f
 This project includes three pages:
 
 ### Home Page (index.html)
-- **Wallet Connection** - Connect MetaMask or Coinbase Wallet to Autonomys EVM
 - **File Upload** - Upload files to Auto Drive permanent storage
 - **QR Code Generation** - Share files with QR codes
 - **My Files** - View your uploaded files with QR codes for each
 - **Credits Display** - Track your Auto Drive storage usage
+- **Wallet Connection** - Optional: Connect MetaMask or Coinbase Wallet
 
 ### Network Stats (stats.html)
 - **Network Health** - Real-time status of blockchain services
@@ -114,17 +114,27 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173/ in your browser and connect your wallet.
+Open http://localhost:5173/ in your browser.
 
-Note: Vite typically runs on http://localhost:5173/ unless you changed its port.
+**To upload files:**
+1. Get an API key from https://ai3.storage/
+2. Enter your API key (or passphrase if configured)
+3. Select a file and upload - no wallet required!
+
+**Wallet connection is optional** - only needed if you want to view your tAI3 balance or interact with the EVM.
 
 ## Next Steps
 
-1. **Set up your wallet** with the Autonomys EVM network
-2. **Get test tokens** from the faucet
-3. **Explore the SDK**: https://develop.autonomys.xyz/sdk
-4. **Build an Agent**: https://develop.autonomys.xyz/auto_agents_framework/introduction
-5. **Deploy a Contract**: Use Remix, Hardhat, or Foundry
+**For File Storage (no wallet needed):**
+1. Get an API key from https://ai3.storage/
+2. Upload files and share via QR codes
+3. Explore the SDK: https://develop.autonomys.xyz/sdk
+
+**For Smart Contract Development (wallet required):**
+1. Set up your wallet with the Autonomys EVM network
+2. Get test tokens from the faucet
+3. Build an Agent: https://develop.autonomys.xyz/auto_agents_framework/introduction
+4. Deploy a Contract: Use Remix, Hardhat, or Foundry
 
 ## Network Stats Page
 
