@@ -9,14 +9,35 @@
  * - Search by filename or CID
  * - Filter by file type
  * - Sort by date/size
+ * - Network toggle (Mainnet/Testnet)
  */
 
-const AUTO_DRIVE_API = 'https://mainnet.auto-drive.autonomys.xyz/api';
-const GATEWAY_URL = 'https://gateway.autonomys.xyz/file';
+// Network configurations
+const NETWORKS = {
+    mainnet: {
+        name: 'Mainnet',
+        autoDriveApi: 'https://mainnet.auto-drive.autonomys.xyz/api',
+        gateway: 'https://gateway.autonomys.xyz/file'
+    },
+    testnet: {
+        name: 'Testnet (Taurus)',
+        autoDriveApi: 'https://taurus.auto-drive.autonomys.xyz/api',
+        gateway: 'https://gateway.taurus.autonomys.xyz/file'
+    }
+};
+
+// Current network selection (default to mainnet, or load from localStorage)
+let currentNetwork = localStorage.getItem('selectedNetwork') || 'mainnet';
+
 const FILES_PER_PAGE = 20;
 
 // Read-only API key for browsing public network files
 const API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
+
+// Get current network config
+function getNetwork() {
+    return NETWORKS[currentNetwork];
+}
 
 let currentPage = 0;
 let totalFiles = 0;
@@ -70,6 +91,7 @@ function getStatusBadge(status) {
 
 // Fetch files from network
 async function fetchFiles(page = 0) {
+    const network = getNetwork();
     const loadingEl = document.getElementById('files-loading');
     const tableContainer = document.getElementById('files-table-container');
     
@@ -79,7 +101,7 @@ async function fetchFiles(page = 0) {
     try {
         // Fetch more files to get a better sample for sorting (API doesn't support sort)
         const limit = 100; // Fetch 100 to find recent files
-        const response = await fetch(`${AUTO_DRIVE_API}/objects/roots?limit=${limit}&offset=0`, {
+        const response = await fetch(`${network.autoDriveApi}/objects/roots?limit=${limit}&offset=0`, {
             headers: {
                 'Authorization': `Bearer ${API_KEY}`,
                 'X-Auth-Provider': 'apikey'
@@ -123,6 +145,7 @@ async function fetchFiles(page = 0) {
 
 // Render files table
 function renderFilesTable(files) {
+    const network = getNetwork();
     const tbody = document.getElementById('explore-table-body');
     tbody.innerHTML = '';
 
@@ -134,7 +157,7 @@ function renderFilesTable(files) {
     files.forEach(file => {
         const row = document.createElement('tr');
         const cid = file.headCid || file.cid || 'N/A';
-        const gatewayUrl = `${GATEWAY_URL}/${cid}`;
+        const gatewayUrl = `${network.gateway}/${cid}`;
         const icon = getFileIcon(file.mimeType, file.name);
         const name = file.name || 'Unnamed';
         const displayName = name.length > 35 ? name.slice(0, 32) + '...' : name;
@@ -295,8 +318,44 @@ function applyFilters() {
 window.goToPage = goToPage;
 window.copyToClipboard = copyToClipboard;
 
+// Switch network and refresh files
+function switchNetwork(network) {
+    if (network === currentNetwork) return;
+    
+    currentNetwork = network;
+    localStorage.setItem('selectedNetwork', network);
+    
+    // Update toggle buttons
+    const mainnetBtn = document.getElementById('mainnet-btn');
+    const testnetBtn = document.getElementById('testnet-btn');
+    
+    if (network === 'mainnet') {
+        mainnetBtn?.classList.add('active');
+        testnetBtn?.classList.remove('active');
+    } else {
+        mainnetBtn?.classList.remove('active');
+        testnetBtn?.classList.add('active');
+    }
+    
+    // Refresh files with new network
+    fetchFiles(0);
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Set up network toggle buttons
+    const mainnetBtn = document.getElementById('mainnet-btn');
+    const testnetBtn = document.getElementById('testnet-btn');
+    
+    // Restore saved network preference
+    if (currentNetwork === 'testnet') {
+        mainnetBtn?.classList.remove('active');
+        testnetBtn?.classList.add('active');
+    }
+    
+    mainnetBtn?.addEventListener('click', () => switchNetwork('mainnet'));
+    testnetBtn?.addEventListener('click', () => switchNetwork('testnet'));
+    
     fetchFiles(0);
     setupSearch();
     setupFilters();

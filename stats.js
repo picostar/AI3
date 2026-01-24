@@ -7,15 +7,43 @@
  * - Subscan API (consensus layer health)
  * 
  * Auto-refreshes every 30 seconds.
+ * Supports switching between Mainnet and Testnet.
  */
 
-// API endpoints
-const EXPLORER_API = 'https://explorer.auto-evm.mainnet.autonomys.xyz/api/v2';
-const GATEWAY_URL = 'https://gateway.autonomys.xyz';
-const AUTO_DRIVE_API = 'https://mainnet.auto-drive.autonomys.xyz/api';
+// Network configurations
+const NETWORKS = {
+    mainnet: {
+        name: 'Mainnet',
+        explorerApi: 'https://explorer.auto-evm.mainnet.autonomys.xyz/api/v2',
+        autoDriveApi: 'https://mainnet.auto-drive.autonomys.xyz/api',
+        gateway: 'https://gateway.autonomys.xyz',
+        rpcUrl: 'https://auto-evm.mainnet.autonomys.xyz/ws',
+        altRpcUrl: 'https://rpc.auto-evm.mainnet.autonomys.xyz',
+        subscanApi: 'https://autonomys.api.subscan.io',
+        explorerUrl: 'https://explorer.auto-evm.mainnet.autonomys.xyz'
+    },
+    testnet: {
+        name: 'Testnet (Taurus)',
+        explorerApi: 'https://explorer.auto-evm.taurus.autonomys.xyz/api/v2',
+        autoDriveApi: 'https://taurus.auto-drive.autonomys.xyz/api',
+        gateway: 'https://gateway.taurus.autonomys.xyz',
+        rpcUrl: 'https://auto-evm.taurus.autonomys.xyz/ws',
+        altRpcUrl: 'https://rpc.auto-evm.taurus.autonomys.xyz',
+        subscanApi: 'https://autonomys-taurus.api.subscan.io',
+        explorerUrl: 'https://explorer.auto-evm.taurus.autonomys.xyz'
+    }
+};
+
+// Current network selection (default to mainnet, or load from localStorage)
+let currentNetwork = localStorage.getItem('selectedNetwork') || 'mainnet';
 
 // Read-only API key for browsing public network files
 const AUTO_DRIVE_API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
+
+// Get current network config
+function getNetwork() {
+    return NETWORKS[currentNetwork];
+}
 
 // Track when services first went down (for escalating from warning to error)
 const healthDownSince = {};
@@ -103,8 +131,9 @@ function updateStorageCosts(ai3Price) {
 
 // Fetch network stats from Blockscout
 async function fetchNetworkStats() {
+    const network = getNetwork();
     try {
-        const response = await fetch(`${EXPLORER_API}/stats`);
+        const response = await fetch(`${network.explorerApi}/stats`);
         const stats = await response.json();
         
         // Update all stats cards with real data
@@ -154,9 +183,10 @@ async function fetchNetworkStats() {
 
 // Fetch network files count and stats from Auto Drive
 async function fetchNetworkFilesCount() {
+    const network = getNetwork();
     try {
         // Fetch a sample of 1000 files for statistics
-        const response = await fetch(`${AUTO_DRIVE_API}/objects/roots?limit=1000`, {
+        const response = await fetch(`${network.autoDriveApi}/objects/roots?limit=1000`, {
             headers: {
                 'Authorization': `Bearer ${AUTO_DRIVE_API_KEY}`,
                 'X-Auth-Provider': 'apikey'
@@ -256,17 +286,18 @@ async function fetchNetworkFilesCount() {
 
 // Fetch and render file upload chart from Auto Drive
 async function fetchUploadChart() {
+    const network = getNetwork();
     try {
         // Fetch network files and user files
         // Note: API returns files sorted by CID, not date, so we need user files for recent data
         const [networkRes, userRes] = await Promise.all([
-            fetch(`${AUTO_DRIVE_API}/objects/roots?limit=5000`, {
+            fetch(`${network.autoDriveApi}/objects/roots?limit=5000`, {
                 headers: {
                     'Authorization': `Bearer ${AUTO_DRIVE_API_KEY}`,
                     'X-Auth-Provider': 'apikey'
                 }
             }),
-            fetch(`${AUTO_DRIVE_API}/objects/roots?scope=user&limit=500`, {
+            fetch(`${network.autoDriveApi}/objects/roots?scope=user&limit=500`, {
                 headers: {
                     'Authorization': `Bearer ${AUTO_DRIVE_API_KEY}`,
                     'X-Auth-Provider': 'apikey'
@@ -374,11 +405,12 @@ function renderUploadChart(chartData, totalNetworkFiles) {
 
 // Fetch and render transaction chart
 async function fetchTransactionChart() {
+    const network = getNetwork();
     try {
         // Get chart data and current stats
         const [chartResponse, statsResponse] = await Promise.all([
-            fetch(`${EXPLORER_API}/stats/charts/transactions`),
-            fetch(`${EXPLORER_API}/stats`)
+            fetch(`${network.explorerApi}/stats/charts/transactions`),
+            fetch(`${network.explorerApi}/stats`)
         ]);
         
         const chartData = await chartResponse.json();
@@ -439,8 +471,9 @@ function renderChart(chartData) {
 
 // Fetch recent blocks from Blockscout
 async function fetchRecentBlocks() {
+    const network = getNetwork();
     try {
-        const response = await fetch(`${EXPLORER_API}/main-page/blocks`);
+        const response = await fetch(`${network.explorerApi}/main-page/blocks`);
         const blocks = await response.json();
         
         const tbody = document.getElementById('blocks-table-body');
@@ -449,7 +482,7 @@ async function fetchRecentBlocks() {
         blocks.slice(0, 10).forEach(block => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><a href="https://explorer.auto-evm.mainnet.autonomys.xyz/block/${block.height}" target="_blank">#${formatNumber(block.height)}</a></td>
+                <td><a href="${network.explorerUrl}/block/${block.height}" target="_blank">#${formatNumber(block.height)}</a></td>
                 <td>${timeAgoISO(block.timestamp)}</td>
                 <td>${block.transaction_count || 0}</td>
                 <td>${block.size ? formatNumber(block.size) + ' B' : '-'}</td>
@@ -473,8 +506,9 @@ async function fetchRecentBlocks() {
 
 // Check gateway health
 async function checkGatewayHealth() {
+    const network = getNetwork();
     try {
-        await fetch(`${GATEWAY_URL}/`, { method: 'HEAD', mode: 'no-cors' });
+        await fetch(`${network.gateway}/`, { method: 'HEAD', mode: 'no-cors' });
         setHealth('health-gateway', 'healthy');
         return true;
     } catch (error) {
@@ -485,8 +519,9 @@ async function checkGatewayHealth() {
 
 // Check consensus chain health via Subscan
 async function checkConsensusHealth() {
+    const network = getNetwork();
     try {
-        const response = await fetch('https://autonomys.api.subscan.io/api/scan/metadata', {
+        const response = await fetch(`${network.subscanApi}/api/scan/metadata`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({})
@@ -507,8 +542,9 @@ async function checkConsensusHealth() {
 
 // Check RPC node health
 async function checkRpcHealth() {
+    const network = getNetwork();
     try {
-        const response = await fetch('https://auto-evm.mainnet.autonomys.xyz/ws', {
+        const response = await fetch(network.rpcUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -528,7 +564,7 @@ async function checkRpcHealth() {
     } catch (error) {
         // Try alternative RPC endpoint
         try {
-            const altResponse = await fetch('https://rpc.auto-evm.mainnet.autonomys.xyz', {
+            const altResponse = await fetch(network.altRpcUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -612,8 +648,44 @@ async function refreshStats() {
     }
 }
 
+// Switch network and refresh stats
+function switchNetwork(network) {
+    if (network === currentNetwork) return;
+    
+    currentNetwork = network;
+    localStorage.setItem('selectedNetwork', network);
+    
+    // Update toggle buttons
+    const mainnetBtn = document.getElementById('mainnet-btn');
+    const testnetBtn = document.getElementById('testnet-btn');
+    
+    if (network === 'mainnet') {
+        mainnetBtn?.classList.add('active');
+        testnetBtn?.classList.remove('active');
+    } else {
+        mainnetBtn?.classList.remove('active');
+        testnetBtn?.classList.add('active');
+    }
+    
+    // Refresh all stats with new network
+    refreshStats();
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Set up network toggle buttons
+    const mainnetBtn = document.getElementById('mainnet-btn');
+    const testnetBtn = document.getElementById('testnet-btn');
+    
+    // Restore saved network preference
+    if (currentNetwork === 'testnet') {
+        mainnetBtn?.classList.remove('active');
+        testnetBtn?.classList.add('active');
+    }
+    
+    mainnetBtn?.addEventListener('click', () => switchNetwork('mainnet'));
+    testnetBtn?.addEventListener('click', () => switchNetwork('testnet'));
+    
     refreshStats();
     setInterval(refreshStats, 30000);
     
