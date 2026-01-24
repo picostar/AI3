@@ -134,6 +134,39 @@ function updateStorageCosts(ai3Price) {
     if (adPriceEl) adPriceEl.textContent = '$' + costPerGB.toFixed(2);
 }
 
+// Fetch and update Arweave storage cost from their API
+async function fetchArweaveCost() {
+    try {
+        // Fetch Arweave price for 1GB in winston (1 AR = 10^12 winston)
+        const [priceRes, rateRes] = await Promise.all([
+            fetch('https://arweave.net/price/1073741824'), // 1GB in bytes
+            fetch('https://api.coingecko.com/api/v3/simple/price?ids=arweave&vs_currencies=usd')
+        ]);
+        
+        const winstonPerGB = parseInt(await priceRes.text());
+        const rateData = await rateRes.json();
+        const arUsdPrice = rateData.arweave?.usd;
+        
+        if (winstonPerGB && arUsdPrice) {
+            // Convert winston to AR (1 AR = 10^12 winston), then to USD
+            const arPerGB = winstonPerGB / 1e12;
+            const costPerGB = arPerGB * arUsdPrice;
+            
+            // Update all Arweave price displays
+            const arPriceEls = document.querySelectorAll('.ar-price');
+            arPriceEls.forEach(el => {
+                el.textContent = '~$' + costPerGB.toFixed(2);
+                el.title = `${arPerGB.toFixed(2)} AR × $${arUsdPrice.toFixed(2)}/AR (live from Arweave API)`;
+            });
+            
+            console.log(`Arweave cost: ${arPerGB.toFixed(2)} AR × $${arUsdPrice.toFixed(2)} = $${costPerGB.toFixed(2)}/GB`);
+        }
+    } catch (error) {
+        console.error('Failed to fetch Arweave pricing:', error);
+        // Keep default ~$13 estimate on error
+    }
+}
+
 // Fetch network stats from Blockscout
 async function fetchNetworkStats() {
     const network = getNetwork();
@@ -734,7 +767,8 @@ async function refreshStats() {
         fetchNetworkFilesCount(),
         checkGatewayHealth(),
         checkConsensusHealth(),
-        checkRpcHealth()
+        checkRpcHealth(),
+        fetchArweaveCost()
     ]);
     
     updateHealthMessage();
