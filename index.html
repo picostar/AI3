@@ -148,11 +148,22 @@
                             <th>Name</th>
                             <th>Size / Credits</th>
                             <th>CID (On-Chain ID)</th>
+                            <th>QR</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="files-table-body"></tbody>
                 </table>
+                
+                <!-- QR Code Modal -->
+                <div id="qr-modal" class="qr-modal hidden">
+                    <div class="qr-modal-content">
+                        <button class="qr-modal-close" onclick="closeQrModal()">&times;</button>
+                        <h3 id="qr-modal-title">File QR Code</h3>
+                        <div id="qr-modal-canvas"></div>
+                        <p id="qr-modal-link" class="qr-modal-link"></p>
+                    </div>
+                </div>
                 <div id="files-pagination" class="pagination"></div>
             </div>
             <div id="files-error" class="hidden error"></div>

@@ -493,6 +493,44 @@ function showUploadStatus(message, type) {
     uploadStatus.classList.remove('hidden');
 }
 
+// Show QR code modal for a file
+async function showQrCode(url, fileName) {
+    const modal = document.getElementById('qr-modal');
+    const canvas = document.getElementById('qr-modal-canvas');
+    const title = document.getElementById('qr-modal-title');
+    const link = document.getElementById('qr-modal-link');
+    
+    if (!modal || !canvas) return;
+    
+    title.textContent = fileName || 'File QR Code';
+    link.textContent = url;
+    
+    // Clear previous QR code
+    canvas.innerHTML = '';
+    
+    // Generate QR code
+    try {
+        const qrCanvas = document.createElement('canvas');
+        canvas.appendChild(qrCanvas);
+        await QRCode.toCanvas(qrCanvas, url, { width: 200 });
+    } catch (err) {
+        console.error('Error generating QR code:', err);
+        canvas.innerHTML = '<p>Failed to generate QR code</p>';
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+// Close QR code modal
+function closeQrModal() {
+    const modal = document.getElementById('qr-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+// Make QR functions globally accessible
+window.showQrCode = showQrCode;
+window.closeQrModal = closeQrModal;
+
 // Copy share link
 function copyShareLink() {
     const link = shareLinkElement.textContent;
@@ -620,7 +658,7 @@ async function loadMyFiles(page = 0) {
         filesTableBody.innerHTML = '';
         
         if (!myFiles.rows || myFiles.rows.length === 0) {
-            filesTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No files found. Upload a file to store it on AI3.</td></tr>';
+            filesTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No files found. Upload a file to store it on AI3.</td></tr>';
         } else {
             for (const file of myFiles.rows) {
                 const row = document.createElement('tr');
@@ -636,6 +674,9 @@ async function loadMyFiles(page = 0) {
                     <td class="monospace cid-cell">
                         <span title="${cid}">${shortCid}</span>
                         <button class="btn-copy-small" onclick="navigator.clipboard.writeText('${cid}')" title="Copy CID">Copy</button>
+                    </td>
+                    <td class="qr-cell">
+                        <button class="btn btn-small btn-qr" onclick="showQrCode('${gatewayUrl}', '${(file.name || 'File').replace(/'/g, "\\'")}')">QR</button>
                     </td>
                     <td class="actions-cell">
                         <a href="${gatewayUrl}" target="_blank" class="btn btn-small btn-primary">View</a>
