@@ -19,7 +19,7 @@
         </header>
 
         <div class="stats-grid">
-            <div class="stat-card highlight-card">
+            <div class="stat-card highlight-card" title="Current AI3 token price in USD. Source: Blockscout Explorer API (explorer.auto-evm.mainnet.autonomys.xyz/api/v2/stats)">
                 <div class="stat-icon">$</div>
                 <div class="stat-content">
                     <div class="stat-label">AI3 Price</div>
@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" title="Total blocks produced on the Autonomys EVM domain. Source: Blockscout Explorer API (total_blocks field)">
                 <div class="stat-icon">B</div>
                 <div class="stat-content">
                     <div class="stat-label">Total Blocks</div>
@@ -37,7 +37,7 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" title="EVM transactions in the last 24 hours. Source: Blockscout Explorer API (transactions_today field)">
                 <div class="stat-icon">#</div>
                 <div class="stat-content">
                     <div class="stat-label">Today's Txns</div>
@@ -46,7 +46,7 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" title="Unique wallet addresses that have interacted with the EVM. Source: Blockscout Explorer API (total_addresses field)">
                 <div class="stat-icon">@</div>
                 <div class="stat-content">
                     <div class="stat-label">Addresses</div>
@@ -55,7 +55,7 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" title="Average time between blocks (~6-7 seconds target). Source: Blockscout Explorer API (average_block_time field, converted from ms)">
                 <div class="stat-icon">T</div>
                 <div class="stat-content">
                     <div class="stat-label">Block Time</div>
@@ -64,7 +64,7 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" title="Current transaction fee rate in Gwei. Source: Blockscout Explorer API (gas_prices.average field)">
                 <div class="stat-icon">G</div>
                 <div class="stat-content">
                     <div class="stat-label">Gas Price</div>
@@ -76,7 +76,7 @@
 
         <!-- Storage Stats Section -->
         <div class="stats-grid storage-stats">
-            <div class="stat-card storage-card">
+            <div class="stat-card storage-card" title="Estimated blockchain data archived permanently. Calculated as: total_blocks × ~35KB average block size. The actual archival happens via Proof-of-Archival-Storage consensus.">
                 <div class="stat-icon">DB</div>
                 <div class="stat-content">
                     <div class="stat-label">Archived History</div>
@@ -85,7 +85,7 @@
                 </div>
             </div>
 
-            <div class="stat-card storage-card">
+            <div class="stat-card storage-card" title="Total storage space pledged by farmers worldwide. Farmers store pieces of the blockchain and submit cryptographic proofs. Source: Estimated from network reports (~50+ PB).">
                 <div class="stat-icon">HD</div>
                 <div class="stat-content">
                     <div class="stat-label">Farmer Storage</div>
@@ -94,7 +94,7 @@
                 </div>
             </div>
 
-            <div class="stat-card storage-card">
+            <div class="stat-card storage-card" title="Total files stored on Auto Drive permanent storage. Source: Auto Drive API (mainnet.auto-drive.autonomys.xyz/api/objects/roots - totalCount field)">
                 <div class="stat-icon">F</div>
                 <div class="stat-content">
                     <div class="stat-label">Network Files</div>
