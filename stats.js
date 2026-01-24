@@ -144,18 +144,31 @@ async function fetchNetworkStats() {
         // Update all stats cards with real data
         document.getElementById('latest-block').textContent = formatNumber(stats.total_blocks);
         document.getElementById('avg-block-time').textContent = (stats.average_block_time / 1000).toFixed(1);
-        document.getElementById('total-supply').textContent = '$' + parseFloat(stats.coin_price).toFixed(4);
         
-        // Price change indicator
-        const priceChange = stats.coin_price_change_percentage;
-        const priceDetail = document.getElementById('total-supply').parentElement.querySelector('.stat-detail');
-        if (priceChange >= 0) {
-            priceDetail.innerHTML = `<span style="color: #4ade80">+${priceChange.toFixed(2)}%</span> 24h change`;
+        // Price - only available on mainnet (testnet has no real token value)
+        const priceEl = document.getElementById('total-supply');
+        const priceDetail = priceEl.parentElement.querySelector('.stat-detail');
+        if (stats.coin_price && !isNaN(parseFloat(stats.coin_price))) {
+            priceEl.textContent = '$' + parseFloat(stats.coin_price).toFixed(4);
+            
+            // Price change indicator
+            const priceChange = parseFloat(stats.coin_price_change_percentage) || 0;
+            if (priceChange >= 0) {
+                priceDetail.innerHTML = `<span style="color: #4ade80">+${priceChange.toFixed(2)}%</span> 24h change`;
+            } else {
+                priceDetail.innerHTML = `<span style="color: #f87171">${priceChange.toFixed(2)}%</span> 24h change`;
+            }
+            
+            // Update storage cost calculator with live price
+            updateStorageCosts(parseFloat(stats.coin_price));
         } else {
-            priceDetail.innerHTML = `<span style="color: #f87171">-${Math.abs(priceChange).toFixed(2)}%</span> 24h change`;
+            // Testnet - no real price
+            priceEl.textContent = 'N/A';
+            priceEl.title = 'Testnet tokens have no real value';
+            priceDetail.textContent = 'Testnet (no market value)';
         }
         
-        document.getElementById('tx-count').textContent = stats.transactions_today;
+        document.getElementById('tx-count').textContent = parseInt(stats.transactions_today) || 0;
         document.getElementById('tx-count').parentElement.querySelector('.stat-detail').textContent = 
             `${formatNumber(stats.total_transactions)} total`;
         
@@ -173,9 +186,6 @@ async function fetchNetworkStats() {
         
         // Farmer storage - Autonomys mainnet has 50+ PB pledged
         document.getElementById('farmer-storage').textContent = '50+ PB';
-        
-        // Update storage cost calculator with live price
-        updateStorageCosts(parseFloat(stats.coin_price));
         
         setHealth('health-blocks', 'healthy');
         return stats;
