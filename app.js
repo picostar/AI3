@@ -813,6 +813,8 @@ apiKeyInput.addEventListener('input', () => {
             const decrypted = await checkSecretKey(key);
             if (decrypted) {
                 finalKey = decrypted;
+                // Save immediately before updating input (which triggers another event)
+                localStorage.setItem('autoDriveApiKey', finalKey);
                 apiKeyInput.value = decrypted;
                 apiKeyInput.type = 'password'; // Hide the key
                 showUploadStatus('API key unlocked!', 'success');
@@ -820,6 +822,13 @@ apiKeyInput.addEventListener('input', () => {
                     const uploadStatus = document.getElementById('upload-status');
                     if (uploadStatus) uploadStatus.classList.add('hidden');
                 }, 2000);
+                // Load credits and files
+                await checkCredits();
+                await loadMyFiles(0);
+                if (apiStatus && autoDriveApi) {
+                    apiStatus.classList.remove('hidden');
+                }
+                return; // Exit early, we've already handled everything
             } else {
                 // Not a valid passphrase or key
                 return;
