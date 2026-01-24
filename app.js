@@ -519,6 +519,11 @@ async function showQrCode(url, fileName) {
     }
     
     modal.classList.remove('hidden');
+    
+    // Close modal when clicking outside the content
+    modal.onclick = (e) => {
+        if (e.target === modal) closeQrModal();
+    };
 }
 
 // Close QR code modal
@@ -526,6 +531,11 @@ function closeQrModal() {
     const modal = document.getElementById('qr-modal');
     if (modal) modal.classList.add('hidden');
 }
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeQrModal();
+});
 
 // Make QR functions globally accessible
 window.showQrCode = showQrCode;
