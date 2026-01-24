@@ -2,6 +2,10 @@
 const EXPLORER_API = 'https://explorer.auto-evm.mainnet.autonomys.xyz/api/v2';
 const GATEWAY_URL = 'https://gateway.autonomys.xyz';
 
+// Track when services first went down (for escalating from warning to error)
+const healthDownSince = {};
+const DOWNTIME_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
+
 // Format large numbers
 function formatNumber(num) {
     if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
@@ -35,10 +39,31 @@ function truncateHash(hash) {
     return hash.slice(0, 10) + '...' + hash.slice(-6);
 }
 
-// Set health indicator
+// Set health indicator with downtime tracking
+// Orange (warning) when first down, Red (error) after 15+ minutes down
 function setHealth(elementId, status) {
     const el = document.getElementById(elementId);
-    if (el) el.className = 'health-dot ' + status;
+    if (!el) return;
+    
+    if (status === 'healthy' || status === 'loading') {
+        // Service is up or loading - clear any tracked downtime
+        delete healthDownSince[elementId];
+        el.className = 'health-dot ' + status;
+    } else if (status === 'down' || status === 'warning' || status === 'error') {
+        // Service is down - track when it first went down
+        if (!healthDownSince[elementId]) {
+            healthDownSince[elementId] = Date.now();
+        }
+        
+        const downDuration = Date.now() - healthDownSince[elementId];
+        if (downDuration >= DOWNTIME_THRESHOLD_MS) {
+            // Down for 15+ minutes - show red
+            el.className = 'health-dot error';
+        } else {
+            // Just went down - show orange
+            el.className = 'health-dot warning';
+        }
+    }
 }
 
 // Update storage cost calculator with live AI3 price
@@ -201,7 +226,7 @@ async function fetchNetworkFilesCount() {
             // Storage network is healthy
             setHealth('health-storage', 'healthy');
         } else {
-            setHealth('health-storage', 'warning');
+            setHealth('health-storage', 'down');
         }
     } catch (error) {
         console.error('Failed to fetch network files:', error);
@@ -212,7 +237,7 @@ async function fetchNetworkFilesCount() {
             const el = document.getElementById(id);
             if (el) el.textContent = 'N/A';
         });
-        setHealth('health-storage', 'error');
+        setHealth('health-storage', 'down');
     }
 }
 
@@ -430,7 +455,7 @@ async function fetchRecentBlocks() {
     } catch (error) {
         console.error('Failed to fetch blocks:', error);
         document.getElementById('blocks-loading').textContent = 'Failed to load blocks';
-        setHealth('health-blocks', 'warning');
+        setHealth('health-blocks', 'down');
         return null;
     }
 }
@@ -442,7 +467,7 @@ async function checkGatewayHealth() {
         setHealth('health-gateway', 'healthy');
         return true;
     } catch (error) {
-        setHealth('health-gateway', 'warning');
+        setHealth('health-gateway', 'down');
         return false;
     }
 }
@@ -460,11 +485,11 @@ async function checkConsensusHealth() {
             setHealth('health-consensus', 'healthy');
             return true;
         }
-        setHealth('health-consensus', 'warning');
+        setHealth('health-consensus', 'down');
         return false;
     } catch (error) {
         console.error('Consensus health check failed:', error);
-        setHealth('health-consensus', 'error');
+        setHealth('health-consensus', 'down');
         return false;
     }
 }
@@ -487,7 +512,7 @@ async function checkRpcHealth() {
             setHealth('health-rpc', 'healthy');
             return true;
         }
-        setHealth('health-rpc', 'warning');
+        setHealth('health-rpc', 'down');
         return false;
     } catch (error) {
         // Try alternative RPC endpoint
@@ -509,7 +534,7 @@ async function checkRpcHealth() {
             }
         } catch (e) {}
         console.error('RPC health check failed:', error);
-        setHealth('health-rpc', 'error');
+        setHealth('health-rpc', 'down');
         return false;
     }
 }
