@@ -104,6 +104,45 @@
             </div>
         </div>
 
+        <!-- Auto Drive Stats Section -->
+        <div class="stats-grid storage-stats">
+            <div class="stat-card storage-card" title="Estimated total data stored on Auto Drive. Calculated from average file size × total file count. Source: Auto Drive API sample analysis.">
+                <div class="stat-icon">💾</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Stored</div>
+                    <div id="total-storage" class="stat-number">Loading...</div>
+                    <div class="stat-detail">estimated from sample</div>
+                </div>
+            </div>
+
+            <div class="stat-card storage-card" title="Average file size on Auto Drive. Calculated from a sample of 1000 files. Source: Auto Drive API.">
+                <div class="stat-icon">📄</div>
+                <div class="stat-content">
+                    <div class="stat-label">Avg File Size</div>
+                    <div id="avg-file-size" class="stat-number">Loading...</div>
+                    <div class="stat-detail">across all files</div>
+                </div>
+            </div>
+
+            <div class="stat-card storage-card" title="Percentage of files fully archived and replicated across farmers. 'Archived' means the file is permanently stored. Source: Auto Drive API status field.">
+                <div class="stat-icon">✓</div>
+                <div class="stat-content">
+                    <div class="stat-label">Archive Rate</div>
+                    <div id="archive-rate" class="stat-number">Loading...</div>
+                    <div class="stat-detail">files fully archived</div>
+                </div>
+            </div>
+
+            <div class="stat-card storage-card" title="Most common file type stored on Auto Drive. Source: Auto Drive API mimeType field analysis from sample.">
+                <div class="stat-icon">📁</div>
+                <div class="stat-content">
+                    <div class="stat-label">Top File Type</div>
+                    <div id="top-file-type" class="stat-number">Loading...</div>
+                    <div class="stat-detail">most common format</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Storage Cost Calculator -->
         <div class="card cost-calculator">
             <h2>Storage Cost Calculator</h2>

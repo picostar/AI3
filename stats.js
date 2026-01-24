@@ -113,18 +113,72 @@ async function fetchNetworkStats() {
     }
 }
 
-// Fetch network files count from Auto Drive
+// Fetch network files count and stats from Auto Drive
 async function fetchNetworkFilesCount() {
     try {
         const API_KEY = '8e2d61fa4df443b9a44d9f358b861792';
-        const response = await fetch('https://mainnet.auto-drive.autonomys.xyz/api/objects/roots?limit=1', {
+        
+        // Fetch a sample of 1000 files for statistics
+        const response = await fetch('https://mainnet.auto-drive.autonomys.xyz/api/objects/roots?limit=1000', {
             headers: {
                 'Authorization': `Bearer ${API_KEY}`,
                 'X-Auth-Provider': 'apikey'
             }
         });
         const data = await response.json();
-        document.getElementById('network-files').textContent = formatNumber(data.totalCount || 0);
+        const totalCount = parseInt(data.totalCount) || 0;
+        const files = data.rows || [];
+        
+        // Update total files count
+        document.getElementById('network-files').textContent = formatNumber(totalCount);
+        
+        // Calculate additional stats from sample
+        if (files.length > 0) {
+            // Total storage estimate (sample avg × total count)
+            let sampleSize = 0;
+            let archivedCount = 0;
+            const mimeTypes = {};
+            
+            files.forEach(f => {
+                sampleSize += parseInt(f.size) || 0;
+                if (f.status === 'Archived') archivedCount++;
+                const type = f.mimeType || 'unknown';
+                mimeTypes[type] = (mimeTypes[type] || 0) + 1;
+            });
+            
+            // Average file size
+            const avgSize = sampleSize / files.length;
+            const avgSizeEl = document.getElementById('avg-file-size');
+            if (avgSizeEl) {
+                if (avgSize >= 1e6) avgSizeEl.textContent = (avgSize / 1e6).toFixed(1) + ' MB';
+                else if (avgSize >= 1e3) avgSizeEl.textContent = (avgSize / 1e3).toFixed(1) + ' KB';
+                else avgSizeEl.textContent = Math.round(avgSize) + ' B';
+            }
+            
+            // Estimated total storage
+            const estTotalStorage = avgSize * totalCount;
+            const totalStorageEl = document.getElementById('total-storage');
+            if (totalStorageEl) {
+                if (estTotalStorage >= 1e12) totalStorageEl.textContent = (estTotalStorage / 1e12).toFixed(2) + ' TB';
+                else if (estTotalStorage >= 1e9) totalStorageEl.textContent = (estTotalStorage / 1e9).toFixed(2) + ' GB';
+                else totalStorageEl.textContent = (estTotalStorage / 1e6).toFixed(2) + ' MB';
+            }
+            
+            // Archive rate
+            const archiveRate = (archivedCount / files.length * 100).toFixed(1);
+            const archiveRateEl = document.getElementById('archive-rate');
+            if (archiveRateEl) archiveRateEl.textContent = archiveRate + '%';
+            
+            // Top file type
+            const sortedTypes = Object.entries(mimeTypes).sort((a, b) => b[1] - a[1]);
+            const topTypeEl = document.getElementById('top-file-type');
+            if (topTypeEl && sortedTypes.length > 0) {
+                const topType = sortedTypes[0][0];
+                const shortType = topType.split('/')[1] || topType;
+                const pct = (sortedTypes[0][1] / files.length * 100).toFixed(0);
+                topTypeEl.textContent = shortType.toUpperCase() + ' (' + pct + '%)';
+            }
+        }
     } catch (error) {
         console.error('Failed to fetch network files:', error);
         document.getElementById('network-files').textContent = 'N/A';
