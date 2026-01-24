@@ -37,9 +37,9 @@ const NETWORKS = {
 // Current network selection (default to mainnet, or load from localStorage)
 let currentNetwork = localStorage.getItem('selectedNetwork') || 'mainnet';
 
-// Get API key from localStorage (set on home page)
+// Get API key from sessionStorage (set on home page, cleared when tab closes)
 function getApiKey() {
-    return localStorage.getItem('autoDriveApiKey') || '';
+    return sessionStorage.getItem('autoDriveApiKey') || '';
 }
 
 // Get current network config

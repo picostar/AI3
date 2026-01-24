@@ -841,7 +841,7 @@ apiKeyInput.addEventListener('input', () => {
         creditsSection.classList.add('hidden');
         filesList.classList.add('hidden');
         // Clear stored key if input is cleared
-        localStorage.removeItem('autoDriveApiKey');
+        sessionStorage.removeItem('autoDriveApiKey');
         return;
     }
     
@@ -855,7 +855,7 @@ apiKeyInput.addEventListener('input', () => {
             if (decrypted) {
                 finalKey = decrypted;
                 // Save immediately before updating input (which triggers another event)
-                localStorage.setItem('autoDriveApiKey', finalKey);
+                sessionStorage.setItem('autoDriveApiKey', finalKey);
                 apiKeyInput.value = decrypted;
                 apiKeyInput.type = 'password'; // Hide the key
                 showUploadStatus('API key unlocked!', 'success');
@@ -876,8 +876,8 @@ apiKeyInput.addEventListener('input', () => {
             }
         }
         
-        // Store API key in localStorage for use across pages
-        localStorage.setItem('autoDriveApiKey', finalKey);
+        // Store API key in sessionStorage for use across pages (cleared when tab closes)
+        sessionStorage.setItem('autoDriveApiKey', finalKey);
         
         await checkCredits();
         await loadMyFiles(0);
@@ -888,8 +888,8 @@ apiKeyInput.addEventListener('input', () => {
     }, 500);
 });
 
-// Auto-load API key from localStorage on page load
-const savedApiKey = localStorage.getItem('autoDriveApiKey');
+// Auto-load API key from sessionStorage on page load (persists across page navigations, cleared when tab closes)
+const savedApiKey = sessionStorage.getItem('autoDriveApiKey');
 if (savedApiKey && apiKeyInput) {
     apiKeyInput.value = savedApiKey;
     apiKeyInput.type = 'password'; // Hide the stored key
