@@ -23,14 +23,14 @@ const NETWORKS = {
         explorerUrl: 'https://explorer.auto-evm.mainnet.autonomys.xyz'
     },
     testnet: {
-        name: 'Testnet (Taurus)',
-        explorerApi: 'https://blockscout.taurus.autonomys.xyz/api/v2',
-        autoDriveApi: 'https://demo.auto-drive.autonomys.xyz/api',
-        gateway: 'https://demo.auto-drive.autonomys.xyz/files',
-        rpcUrl: 'https://auto-evm.taurus.autonomys.xyz/ws',
-        altRpcUrl: 'https://rpc-0.taurus.autonomys.xyz',
-        subscanApi: 'https://autonomys.api.subscan.io', // Uses mainnet Subscan (no testnet available)
-        explorerUrl: 'https://blockscout.taurus.autonomys.xyz'
+        name: 'Testnet (Chronos)',
+        explorerApi: 'https://explorer.auto-evm.chronos.autonomys.xyz/api/v2',
+        autoDriveApi: null, // Auto Drive only available on mainnet
+        gateway: 'https://gateway.autonomys.xyz', // Uses mainnet gateway (testnet not available)
+        rpcUrl: 'https://auto-evm.chronos.autonomys.xyz/ws',
+        altRpcUrl: 'https://rpc.auto-evm.chronos.autonomys.xyz',
+        subscanApi: 'https://autonomys-chronos.api.subscan.io',
+        explorerUrl: 'https://explorer.auto-evm.chronos.autonomys.xyz'
     }
 };
 
@@ -92,6 +92,11 @@ function setHealth(elementId, status) {
         // Service is up or loading - clear any tracked downtime
         delete healthDownSince[elementId];
         el.className = 'health-dot ' + status;
+    } else if (status === 'na') {
+        // Service not available for this network (e.g., Auto Drive on testnet)
+        delete healthDownSince[elementId];
+        el.className = 'health-dot na';
+        el.title = 'Not available on this network';
     } else if (status === 'down' || status === 'warning' || status === 'error') {
         // Service is down - track when it first went down
         if (!healthDownSince[elementId]) {
@@ -184,6 +189,22 @@ async function fetchNetworkStats() {
 // Fetch network files count and stats from Auto Drive
 async function fetchNetworkFilesCount() {
     const network = getNetwork();
+    
+    // Auto Drive only available on mainnet
+    if (!network.autoDriveApi) {
+        document.getElementById('network-files').textContent = 'N/A';
+        const avgSizeEl = document.getElementById('avg-file-size');
+        if (avgSizeEl) avgSizeEl.textContent = 'N/A';
+        const largestEl = document.getElementById('largest-file');
+        if (largestEl) largestEl.textContent = 'N/A';
+        const rateEl = document.getElementById('archive-rate');
+        if (rateEl) rateEl.textContent = 'N/A';
+        // Mark storage as unavailable (not down) for testnet
+        setHealth('health-storage', 'na');
+        console.log('Auto Drive API not available for testnet');
+        return;
+    }
+    
     try {
         // Fetch a sample of 1000 files for statistics
         const response = await fetch(`${network.autoDriveApi}/objects/roots?limit=1000`, {
@@ -287,6 +308,17 @@ async function fetchNetworkFilesCount() {
 // Fetch and render file upload chart from Auto Drive
 async function fetchUploadChart() {
     const network = getNetwork();
+    
+    // Auto Drive only available on mainnet
+    if (!network.autoDriveApi) {
+        console.log('Auto Drive API not available for testnet - skipping chart');
+        const chartEl = document.getElementById('upload-chart');
+        if (chartEl) {
+            chartEl.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: var(--text-secondary);">Auto Drive data only available on Mainnet</div>';
+        }
+        return;
+    }
+    
     try {
         // Fetch network files and user files
         // Note: API returns files sorted by CID, not date, so we need user files for recent data
@@ -665,6 +697,13 @@ function switchNetwork(network) {
     } else {
         mainnetBtn?.classList.remove('active');
         testnetBtn?.classList.add('active');
+    }
+    
+    // Clear health message immediately while loading
+    const messageEl = document.getElementById('health-message');
+    if (messageEl) {
+        messageEl.textContent = 'Checking network health...';
+        messageEl.className = 'health-message';
     }
     
     // Refresh all stats with new network

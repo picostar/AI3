@@ -13,6 +13,7 @@
  */
 
 // Network configurations
+// Note: Auto Drive is currently only available on Mainnet
 const NETWORKS = {
     mainnet: {
         name: 'Mainnet',
@@ -20,9 +21,9 @@ const NETWORKS = {
         gateway: 'https://gateway.autonomys.xyz/file'
     },
     testnet: {
-        name: 'Testnet (Taurus)',
-        autoDriveApi: 'https://demo.auto-drive.autonomys.xyz/api',
-        gateway: 'https://demo.auto-drive.autonomys.xyz/files'
+        name: 'Testnet (Chronos)',
+        autoDriveApi: null, // Auto Drive only available on mainnet
+        gateway: 'https://gateway.autonomys.xyz/file' // Uses mainnet gateway
     }
 };
 
@@ -97,6 +98,17 @@ async function fetchFiles(page = 0) {
     
     loadingEl.classList.remove('hidden');
     tableContainer.classList.add('hidden');
+
+    // Check if Auto Drive API is available for this network
+    if (!network.autoDriveApi) {
+        loadingEl.classList.add('hidden');
+        tableContainer.classList.remove('hidden');
+        document.getElementById('total-files').textContent = 'N/A';
+        const tbody = document.getElementById('files-body');
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">Auto Drive is currently only available on Mainnet. Switch to Mainnet to browse files.</td></tr>';
+        document.getElementById('page-info').textContent = 'Page 0 of 0';
+        return;
+    }
 
     try {
         // Fetch more files to get a better sample for sorting (API doesn't support sort)

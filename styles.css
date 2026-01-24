@@ -1080,6 +1080,11 @@ header h1 {
     animation: pulse 1.5s ease-in-out infinite;
 }
 
+.health-dot.na {
+    background: #6c757d;
+    opacity: 0.5;
+}
+
 @keyframes pulse {
     0%, 100% { opacity: 0.4; }
     50% { opacity: 1; }
