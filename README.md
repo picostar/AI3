@@ -104,17 +104,14 @@ This app uses the Auto Drive SDK to store files permanently on the Autonomys net
 - `@autonomys/auto-drive` - File upload/download SDK
 - `@autonomys/auto-utils` - Utility functions and network IDs
 
-### Getting Started
+### Use the Live Demo
 
-```bash
-# Install dependencies
-npm install
+Use the live site: https://picostar.github.io/AI3/
 
-# Start the development server
-npm run dev
-```
-
-Open http://localhost:5173/ in your browser.
+Optional local development:
+- Install dependencies: `npm install`
+- Start the dev server: `npm run dev`
+- Open: http://localhost:5173/
 
 **To upload files:**
 1. Get an API key from https://ai3.storage/
@@ -160,11 +157,11 @@ Auto Drive storage costs are calculated directly from the blockchain's `transact
 
 ```
 Blockchain byte fee: 312,497,241,916 shannon/byte
-Cost per GB = (byte_fee × 1,073,741,824 bytes) / 10^18
+Cost per GB = (byte_fee x 1,073,741,824 bytes) / 10^18
            = 335.54 AI3 per GB
 
-USD Cost = 335.54 AI3 × current_AI3_price
-         ≈ $5.34/GB (at $0.0159/AI3)
+USD Cost = 335.54 AI3 x current_AI3_price
+         approx $5.34/GB (at $0.0159/AI3)
 ```
 
 **Comparison with other permanent storage:**
